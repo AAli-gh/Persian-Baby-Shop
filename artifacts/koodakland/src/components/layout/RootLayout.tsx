@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Header } from "./Header";
+import { Footer } from "./Footer";
 import { MobileNav } from "./MobileNav";
 import { useLocation } from "wouter";
 
@@ -17,7 +18,9 @@ export function RootLayout({ children }: { children: ReactNode }) {
       <main className="flex-1 pb-16 md:pb-0">
         {children}
       </main>
-      {/* Footer would go here */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
       <MobileNav />
     </div>
   );

@@ -22,6 +22,8 @@ import Profile from "@/pages/profile";
 import Blog from "@/pages/blog";
 import BlogPost from "@/pages/blog-post";
 import OrderSuccess from "@/pages/order-success";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
 
 import AdminDashboard from "@/pages/admin/index";
 import AdminProducts from "@/pages/admin/products";
@@ -82,6 +84,8 @@ function AppRouter() {
         <Route path="/blog" component={Blog} />
         <Route path="/blog/:slug" component={BlogPost} />
         <Route path="/order-success" component={OrderSuccess} />
+        <Route path="/about" component={About} />
+        <Route path="/contact" component={Contact} />
         <Route component={NotFound} />
       </Switch>
     </RootLayout>

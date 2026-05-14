@@ -60,6 +60,8 @@ export function Header() {
           {navLink("/", "خانه")}
           {navLink("/shop", "فروشگاه")}
           {navLink("/blog", "وبلاگ")}
+          {navLink("/about", "درباره ما")}
+          {navLink("/contact", "تماس با ما")}
         </nav>
 
         {/* ── Desktop search — centered, takes available space ── */}
@@ -152,6 +154,8 @@ export function Header() {
                         { href: "/", label: "خانه" },
                         { href: "/shop", label: "فروشگاه" },
                         { href: "/blog", label: "وبلاگ" },
+                        { href: "/about", label: "درباره ما" },
+                        { href: "/contact", label: "تماس با ما" },
                         { href: "/wishlist", label: "علاقه‌مندی‌ها" },
                         { href: user ? "/profile" : "/login", label: user ? "پروفایل" : "ورود / ثبت‌نام" },
                       ].map(({ href, label }) => (
