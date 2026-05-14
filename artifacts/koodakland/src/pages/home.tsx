@@ -4,8 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function Home() {
+  useSEO({
+    title: "کودک‌لند — بهترین فروشگاه محصولات کودک در ایران",
+    description: "جدیدترین لباس‌ها، اسباب‌بازی‌ها و لوازم نوزاد با کیفیت تضمین‌شده. ارسال سریع و بازگشت آسان.",
+    keywords: "فروشگاه کودک، لباس کودک، اسباب بازی، لوازم نوزاد، خرید آنلاین کودک",
+    type: "website",
+  });
   const { data: featuredProducts, isLoading: featuredLoading } = useGetFeaturedProducts();
   const { data: flashSaleProducts, isLoading: flashSaleLoading } = useGetFlashSaleProducts();
   const { data: newArrivals, isLoading: newLoading } = useGetNewArrivals();

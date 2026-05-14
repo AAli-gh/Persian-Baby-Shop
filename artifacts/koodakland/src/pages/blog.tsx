@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useListBlogPosts, useListBlogCategories } from "@workspace/api-client-react";
+import { useSEO } from "@/hooks/useSEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Eye } from "lucide-react";
 
 export default function Blog() {
+  useSEO({
+    title: "وبلاگ کودک‌لند — مقالات تخصصی پرورش کودک",
+    description: "آخرین مقالات تخصصی در مورد سلامت، تغذیه، بازی و رشد کودک. راهنمای کامل والدین ایرانی.",
+    keywords: "وبلاگ کودک، مقاله کودک، پرورش کودک، سلامت نوزاد",
+    type: "article",
+  });
   const [selectedCat, setSelectedCat] = useState("");
   const { data, isLoading } = useListBlogPosts({ category: selectedCat || undefined, published: true });
   const { data: cats } = useListBlogCategories();

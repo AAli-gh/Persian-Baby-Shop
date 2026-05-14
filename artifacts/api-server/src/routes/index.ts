@@ -13,6 +13,9 @@ import bannersRouter from "./banners";
 import discountsRouter from "./discounts";
 import adminRouter from "./admin";
 import shippingRouter from "./shipping";
+import uploadRouter from "./upload";
+import smsRouter from "./sms";
+import inventoryRouter from "./inventory";
 
 const router: IRouter = Router();
 
@@ -30,5 +33,8 @@ router.use(bannersRouter);
 router.use(discountsRouter);
 router.use(adminRouter);
 router.use(shippingRouter);
+router.use(uploadRouter);
+router.use(smsRouter);
+router.use(inventoryRouter);
 
 export default router;

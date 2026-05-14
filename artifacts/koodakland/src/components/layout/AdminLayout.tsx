@@ -1,15 +1,18 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Package, ShoppingBag, Tag, BookOpen, Image, Percent, Truck, ArrowRight } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Tag, BookOpen, Image, Percent, Truck, ArrowRight, MessageSquare, Warehouse, BarChart2 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "داشبورد", icon: LayoutDashboard, exact: true },
+  { href: "/admin/analytics", label: "تحلیل فروش", icon: BarChart2 },
   { href: "/admin/products", label: "محصولات", icon: Package },
+  { href: "/admin/inventory", label: "مدیریت انبار", icon: Warehouse },
   { href: "/admin/orders", label: "سفارشات", icon: ShoppingBag },
+  { href: "/admin/discounts", label: "کوپن و تخفیف", icon: Percent },
+  { href: "/admin/sms", label: "پنل پیامک", icon: MessageSquare },
   { href: "/admin/categories", label: "دسته‌بندی‌ها", icon: Tag },
   { href: "/admin/blog", label: "وبلاگ", icon: BookOpen },
   { href: "/admin/banners", label: "بنرها", icon: Image },
-  { href: "/admin/discounts", label: "کدهای تخفیف", icon: Percent },
   { href: "/admin/shipping", label: "ارسال", icon: Truck },
 ];
 

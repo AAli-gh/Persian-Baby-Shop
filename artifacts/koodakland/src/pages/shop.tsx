@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useListProducts, useListCategories } from "@workspace/api-client-react";
+import { useSEO } from "@/hooks/useSEO";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,11 @@ import { SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export default function Shop() {
+  useSEO({
+    title: "فروشگاه محصولات کودک",
+    description: "خرید آنلاین لباس، اسباب‌بازی و لوازم نوزاد با بهترین قیمت. فیلتر پیشرفته بر اساس سن، دسته‌بندی و قیمت.",
+    keywords: "خرید لباس کودک، اسباب بازی ارزان، لوازم نوزاد، فروشگاه آنلاین کودک",
+  });
   const [location] = useLocation();
   const params = new URLSearchParams(location.split("?")[1] || "");
   

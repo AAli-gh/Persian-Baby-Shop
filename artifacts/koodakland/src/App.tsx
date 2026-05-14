@@ -33,6 +33,9 @@ import AdminBlog from "@/pages/admin/blog";
 import AdminBanners from "@/pages/admin/banners";
 import AdminDiscounts from "@/pages/admin/discounts";
 import AdminShipping from "@/pages/admin/shipping";
+import AdminAnalytics from "@/pages/admin/analytics";
+import AdminInventory from "@/pages/admin/inventory";
+import AdminSMS from "@/pages/admin/sms";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,13 +51,16 @@ function AdminRouter() {
     <AdminLayout>
       <Switch>
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/products" component={AdminProducts} />
+        <Route path="/admin/inventory" component={AdminInventory} />
         <Route path="/admin/orders" component={AdminOrders} />
         <Route path="/admin/categories" component={AdminCategories} />
         <Route path="/admin/blog" component={AdminBlog} />
         <Route path="/admin/banners" component={AdminBanners} />
         <Route path="/admin/discounts" component={AdminDiscounts} />
         <Route path="/admin/shipping" component={AdminShipping} />
+        <Route path="/admin/sms" component={AdminSMS} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
