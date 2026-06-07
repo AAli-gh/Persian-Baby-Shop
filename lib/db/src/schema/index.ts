@@ -10,3 +10,4 @@ export * from "./blog";
 export * from "./banners";
 export * from "./discounts";
 export * from "./shipping";
+export * from "./newsletters";

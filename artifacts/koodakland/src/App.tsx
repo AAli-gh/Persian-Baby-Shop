@@ -24,6 +24,11 @@ import BlogPost from "@/pages/blog-post";
 import OrderSuccess from "@/pages/order-success";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsAndConditions from "@/pages/terms-and-conditions";
+import ShippingPolicy from "@/pages/shipping-policy";
+import ReturnPolicy from "@/pages/return-policy";
+import BabyChecklists from "@/pages/baby-checklists";
 
 import AdminDashboard from "@/pages/admin/index";
 import AdminProducts from "@/pages/admin/products";
@@ -36,6 +41,7 @@ import AdminShipping from "@/pages/admin/shipping";
 import AdminAnalytics from "@/pages/admin/analytics";
 import AdminInventory from "@/pages/admin/inventory";
 import AdminSMS from "@/pages/admin/sms";
+import AdminNewsletter from "@/pages/admin/newsletter";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +67,7 @@ function AdminRouter() {
         <Route path="/admin/discounts" component={AdminDiscounts} />
         <Route path="/admin/shipping" component={AdminShipping} />
         <Route path="/admin/sms" component={AdminSMS} />
+        <Route path="/admin/newsletter" component={AdminNewsletter} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -92,6 +99,11 @@ function AppRouter() {
         <Route path="/order-success" component={OrderSuccess} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms-and-conditions" component={TermsAndConditions} />
+        <Route path="/shipping-policy" component={ShippingPolicy} />
+        <Route path="/return-policy" component={ReturnPolicy} />
+        <Route path="/baby-checklists" component={BabyChecklists} />
         <Route component={NotFound} />
       </Switch>
     </RootLayout>

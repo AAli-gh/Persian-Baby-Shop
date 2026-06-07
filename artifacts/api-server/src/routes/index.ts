@@ -16,6 +16,9 @@ import shippingRouter from "./shipping";
 import uploadRouter from "./upload";
 import smsRouter from "./sms";
 import inventoryRouter from "./inventory";
+import newsletterRouter from "./newsletter";
+import bestSellersRouter from "./best-sellers";
+import sitemapRouter from "./sitemap";
 
 const router: IRouter = Router();
 
@@ -36,5 +39,8 @@ router.use(shippingRouter);
 router.use(uploadRouter);
 router.use(smsRouter);
 router.use(inventoryRouter);
+router.use(newsletterRouter);
+router.use(bestSellersRouter);
+router.use(sitemapRouter);
 
 export default router;

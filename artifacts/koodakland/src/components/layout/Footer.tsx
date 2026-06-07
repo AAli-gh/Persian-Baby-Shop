@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Heart, Phone, Mail, MapPin, Instagram, Send, Shield, Truck, RotateCcw, CreditCard, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { useListCategories } from "@workspace/api-client-react";
+import { useMutation } from "@tanstack/react-query";
 
 const QUICK_LINKS = [
   { href: "/", label: "خانه" },
@@ -14,9 +15,16 @@ const QUICK_LINKS = [
 const SUPPORT_LINKS = [
   { href: "/track", label: "پیگیری سفارش" },
   { href: "/contact", label: "پشتیبانی" },
-  { href: "/contact", label: "مرجوعی و بازگشت" },
+  { href: "/return-policy", label: "مرجوعی و بازگشت" },
   { href: "/contact", label: "سوالات متداول" },
   { href: "/login", label: "ورود / ثبت‌نام" },
+];
+
+const LEGAL_LINKS = [
+  { href: "/privacy-policy", label: "حریم خصوصی" },
+  { href: "/terms-and-conditions", label: "قوانین و مقررات" },
+  { href: "/shipping-policy", label: "سیاست ارسال" },
+  { href: "/return-policy", label: "سیاست مرجوعی" },
 ];
 
 const TRUST_BADGES = [
@@ -29,14 +37,30 @@ const TRUST_BADGES = [
 export function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [subMessage, setSubMessage] = useState("");
   const { data: categories } = useListCategories();
   const cats = (categories || []).slice(0, 5);
+
+  const subscribeMutation = useMutation({
+    mutationFn: (email: string) => fetch("/api/newsletter/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, source: "footer" }),
+    }).then(r => r.json()),
+    onSuccess: (data) => {
+      setSubscribed(true);
+      setSubMessage(data.message || "با موفقیت عضو شدید!");
+      setEmail("");
+    },
+    onError: () => {
+      setSubMessage("خطایی رخ داد. دوباره تلاش کنید.");
+    },
+  });
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    setSubscribed(true);
-    setEmail("");
+    subscribeMutation.mutate(email);
   };
 
   return (
@@ -71,7 +95,7 @@ export function Footer() {
           </p>
           {subscribed ? (
             <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-medium text-sm">
-              ✅ ثبت‌نام شما با موفقیت انجام شد!
+              ✅ {subMessage || "ثبت‌نام شما با موفقیت انجام شد!"}
             </div>
           ) : (
             <form onSubmit={handleSubscribe} className="flex gap-2 max-w-sm mx-auto">
@@ -86,10 +110,11 @@ export function Footer() {
               />
               <button
                 type="submit"
-                className="h-11 px-5 rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 transition-colors flex items-center gap-1.5 flex-shrink-0"
+                disabled={subscribeMutation.isPending}
+                className="h-11 px-5 rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 transition-colors flex items-center gap-1.5 flex-shrink-0 disabled:opacity-70"
               >
                 <Send className="w-4 h-4" />
-                عضویت
+                {subscribeMutation.isPending ? "..." : "عضویت"}
               </button>
             </form>
           )}
@@ -222,9 +247,10 @@ export function Footer() {
           <p className="flex items-center gap-1">
             ساخته‌شده با <Heart className="w-3 h-3 text-primary fill-primary" /> برای خانواده‌های ایرانی
           </p>
-          <div className="flex gap-4">
-            <Link href="/contact" className="hover:text-slate-300 transition-colors">حریم خصوصی</Link>
-            <Link href="/contact" className="hover:text-slate-300 transition-colors">قوانین</Link>
+          <div className="flex flex-wrap gap-4">
+            {LEGAL_LINKS.map(({ href, label }) => (
+              <Link key={href} href={href} className="hover:text-slate-300 transition-colors">{label}</Link>
+            ))}
           </div>
         </div>
       </div>

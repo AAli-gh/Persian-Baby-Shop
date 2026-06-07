@@ -1,0 +1,298 @@
+This is an UPDATE to an existing Persian RTL baby and kids e-commerce website.
+
+Do NOT remove, replace, break, redesign, or overwrite any existing functionality.
+
+Keep all current pages, styling, components, database tables, admin features, blog features, search features, inventory features, analytics features, and responsive layouts working exactly as they are.
+
+Only ADD the following new features professionally and integrate them into the current design system.
+
+The website language is Persian (RTL).
+The design theme is cute, modern, premium baby store with pastel colors.
+All new pages and components must follow the existing UI/UX style.
+
+====================================================
+1. TRUST & LEGAL PAGES
+====================================================
+
+Create these new pages:
+
+- /privacy-policy
+- /terms-and-conditions
+- /shipping-policy
+- /return-policy
+
+Requirements:
+
+- Fully Persian RTL
+- Professional typography
+- Mobile responsive
+- SEO optimized
+- Breadcrumb navigation
+- Beautiful page headers
+- Consistent design with website
+
+Add links to all these pages inside the footer.
+
+====================================================
+2. BEST SELLING PRODUCTS
+====================================================
+
+Create a "Best Selling Products" section.
+
+Requirements:
+
+- Display top-selling products
+- Show product image
+- Product title
+- Price
+- Discount badge
+- Add to cart button
+- Wishlist button
+
+Place section:
+- Home page
+- Admin configurable
+
+Admin dashboard:
+- Ability to manually feature products as best sellers
+- Or calculate automatically based on sales
+
+====================================================
+3. RECOMMENDED PRODUCTS
+====================================================
+
+Create "Recommended For You" section.
+
+Logic:
+
+- Based on viewed products
+- Based on category interests
+- Based on wishlist items
+- Fallback to featured products
+
+Display:
+- Home page
+- Product page
+
+====================================================
+4. RECENTLY VIEWED PRODUCTS
+====================================================
+
+Create recently viewed products feature.
+
+Requirements:
+
+- Track product views
+- Save for logged-in users
+- Save in browser for guests
+
+Display:
+- Product page
+- User dashboard
+
+Include:
+- Product image
+- Product title
+- Price
+- Quick add to cart
+
+====================================================
+5. ADMIN MANAGED PROMOTIONAL BANNERS
+====================================================
+
+Create advanced banner management system.
+
+Admin can:
+
+- Add banner
+- Edit banner
+- Delete banner
+- Schedule banner
+- Upload banner image
+- Add title
+- Add subtitle
+- Add button text
+- Add destination URL
+
+Frontend:
+
+- Hero banners
+- Promotional banners
+- Category banners
+
+Responsive on all devices.
+
+====================================================
+6. SHOP BY BABY AGE
+====================================================
+
+Create dedicated shopping sections:
+
+- 0 to 6 months
+- 6 to 12 months
+- 1 to 3 years
+- 3 to 5 years
+
+Requirements:
+
+- New homepage section
+- Filter products automatically
+- Dedicated age pages
+
+Add age group field to products.
+
+Admin can assign age groups.
+
+====================================================
+7. SHOP BY GENDER
+====================================================
+
+Create shopping filters:
+
+- Girls
+- Boys
+- Unisex
+
+Requirements:
+
+- Homepage section
+- Shop filters
+- Product tags
+
+Admin can assign gender category to products.
+
+====================================================
+8. BABY CHECKLIST CENTER
+====================================================
+
+Create a dedicated page:
+
+/baby-checklists
+
+Include:
+
+- Newborn Essentials Checklist
+- Sleeping Essentials Checklist
+- Feeding Essentials Checklist
+
+Features:
+
+- Interactive checklist
+- Users can mark items completed
+- Printable version
+- Mobile friendly
+
+Beautiful illustrations and baby-themed design.
+
+====================================================
+9. EMAIL NEWSLETTER SYSTEM
+====================================================
+
+Create newsletter subscription system.
+
+Features:
+
+- Footer subscription form
+- Homepage subscription section
+- Email validation
+- Success messages
+- Subscriber database table
+
+Admin dashboard:
+
+- View subscribers
+- Export subscribers
+- Manage subscribers
+
+Prepare integration for:
+- Resend
+- Brevo
+
+Do not require paid setup now.
+
+====================================================
+10. FOOTER NEWSLETTER
+====================================================
+
+Add professional footer newsletter block.
+
+Includes:
+
+- Email field
+- Subscribe button
+- Persian copywriting
+- Privacy notice
+
+====================================================
+11. GOOGLE ANALYTICS READY
+====================================================
+
+Prepare complete Google Analytics integration.
+
+Requirements:
+
+- GA4 support
+- Environment variable setup
+- Event tracking structure
+- Product view tracking
+- Add to cart tracking
+- Checkout tracking
+- Purchase tracking preparation
+
+Do not require active Google account.
+
+Just make the site fully ready.
+
+====================================================
+12. GOOGLE SEARCH CONSOLE READY
+====================================================
+
+Prepare Search Console integration.
+
+Requirements:
+
+- Dynamic sitemap.xml
+- robots.txt
+- Structured metadata
+- Canonical URLs
+- Open Graph tags
+- Twitter cards
+- Product schema
+- Blog schema
+- Organization schema
+
+====================================================
+13. SEO IMPROVEMENTS
+====================================================
+
+Improve SEO everywhere.
+
+Requirements:
+
+- Dynamic metadata
+- Product SEO
+- Blog SEO
+- Category SEO
+- Fast page loading
+- Semantic HTML
+- Internal linking
+
+====================================================
+14. QUALITY REQUIREMENTS
+====================================================
+
+Before finishing:
+
+- Verify all routes work
+- Verify all links work
+- Verify no existing features are broken
+- Verify RTL support
+- Verify mobile responsiveness
+- Verify admin dashboard functionality
+- Verify no duplicate components
+- Verify no console errors
+- Verify no build errors
+- Verify no TypeScript errors
+- Verify no database migration conflicts
+
+The update must be production-ready and fully integrated into the existing website.
