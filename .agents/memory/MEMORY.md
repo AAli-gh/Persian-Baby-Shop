@@ -1,0 +1,1 @@
+- [RBAC implementation](rbac.md) — auth middleware, setAuthTokenGetter wiring, and AdminGuard frontend guard

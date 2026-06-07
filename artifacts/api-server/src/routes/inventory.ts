@@ -1,8 +1,10 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable, categoriesTable } from "@workspace/db";
 import { eq, lte, sql } from "drizzle-orm";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
+router.use(requireAuth, requireAdmin);
 
 router.get("/inventory", async (req, res) => {
   const search = String(req.query["search"] ?? "");

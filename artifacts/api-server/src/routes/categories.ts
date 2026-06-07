@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, sql } from "drizzle-orm";
 import { db, categoriesTable, productsTable } from "@workspace/db";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 import { CreateCategoryBody, UpdateCategoryBody, UpdateCategoryParams, DeleteCategoryParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -16,14 +17,14 @@ router.get("/categories", async (_req, res): Promise<void> => {
   res.json(enriched);
 });
 
-router.post("/categories", async (req, res): Promise<void> => {
+router.post("/categories", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateCategoryBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [cat] = await db.insert(categoriesTable).values(parsed.data).returning();
   res.status(201).json(await enrichCategory(cat));
 });
 
-router.patch("/categories/:id", async (req, res): Promise<void> => {
+router.patch("/categories/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   const parsed = UpdateCategoryBody.safeParse(req.body);
@@ -33,7 +34,7 @@ router.patch("/categories/:id", async (req, res): Promise<void> => {
   res.json(await enrichCategory(cat));
 });
 
-router.delete("/categories/:id", async (req, res): Promise<void> => {
+router.delete("/categories/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   await db.delete(categoriesTable).where(eq(categoriesTable.id, id));

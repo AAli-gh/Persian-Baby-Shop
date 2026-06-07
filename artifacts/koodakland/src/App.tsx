@@ -9,7 +9,9 @@ import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { ThemeProvider } from "next-themes";
 import { useLocation } from "wouter";
-
+import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { AdminGuard } from "@/components/auth/AdminGuard";
+import Unauthorized from "@/pages/unauthorized";
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductPage from "@/pages/product";
@@ -43,6 +45,8 @@ import AdminInventory from "@/pages/admin/inventory";
 import AdminSMS from "@/pages/admin/sms";
 import AdminNewsletter from "@/pages/admin/newsletter";
 
+setAuthTokenGetter(() => localStorage.getItem("auth_token"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -54,8 +58,9 @@ const queryClient = new QueryClient({
 
 function AdminRouter() {
   return (
-    <AdminLayout>
-      <Switch>
+    <AdminGuard>
+      <AdminLayout>
+        <Switch>
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/products" component={AdminProducts} />
@@ -69,8 +74,9 @@ function AdminRouter() {
         <Route path="/admin/sms" component={AdminSMS} />
         <Route path="/admin/newsletter" component={AdminNewsletter} />
         <Route component={NotFound} />
-      </Switch>
-    </AdminLayout>
+        </Switch>
+      </AdminLayout>
+    </AdminGuard>
   );
 }
 
@@ -104,6 +110,7 @@ function AppRouter() {
         <Route path="/shipping-policy" component={ShippingPolicy} />
         <Route path="/return-policy" component={ReturnPolicy} />
         <Route path="/baby-checklists" component={BabyChecklists} />
+        <Route path="/unauthorized" component={Unauthorized} />
         <Route component={NotFound} />
       </Switch>
     </RootLayout>

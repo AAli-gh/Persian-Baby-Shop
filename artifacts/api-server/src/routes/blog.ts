@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, sql, desc, and } from "drizzle-orm";
 import { db, blogPostsTable, blogCategoriesTable } from "@workspace/db";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 import { CreateBlogPostBody, UpdateBlogPostBody, ListBlogPostsQueryParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -35,7 +36,7 @@ router.get("/blog/posts", async (req, res): Promise<void> => {
   res.json({ posts: enriched, total: Number(count), page: Number(page), totalPages: Math.ceil(Number(count) / Number(limit)) });
 });
 
-router.post("/blog/posts", async (req, res): Promise<void> => {
+router.post("/blog/posts", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateBlogPostBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [post] = await db.insert(blogPostsTable).values(parsed.data).returning();
@@ -51,7 +52,7 @@ router.get("/blog/posts/:slug", async (req, res): Promise<void> => {
   res.json(enrichPost({ ...post, viewCount: post.viewCount + 1 }, catName));
 });
 
-router.patch("/blog/posts/:slug", async (req, res): Promise<void> => {
+router.patch("/blog/posts/:slug", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const slug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug;
   const parsed = UpdateBlogPostBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
@@ -60,7 +61,7 @@ router.patch("/blog/posts/:slug", async (req, res): Promise<void> => {
   res.json(enrichPost(post));
 });
 
-router.delete("/blog/posts/:slug", async (req, res): Promise<void> => {
+router.delete("/blog/posts/:slug", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const slug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug;
   await db.delete(blogPostsTable).where(eq(blogPostsTable.slug, slug));
   res.sendStatus(204);

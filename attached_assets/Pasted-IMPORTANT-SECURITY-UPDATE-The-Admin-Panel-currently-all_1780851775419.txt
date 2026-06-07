@@ -1,0 +1,123 @@
+IMPORTANT SECURITY UPDATE
+
+The Admin Panel currently allows non-admin users to access admin pages. This is a critical security issue and must be fixed.
+
+Implement proper Role-Based Access Control (RBAC) across the entire application.
+
+Requirements:
+
+1. User Roles
+
+Create and enforce these roles:
+- admin
+- manager
+- customer
+
+2. Admin Route Protection
+
+Protect all admin routes.
+
+Examples:
+- /admin
+- /admin/*
+- dashboard admin pages
+- inventory management
+- product management
+- order management
+- analytics
+- coupon management
+- banner management
+- blog management
+
+Only users with role:
+- admin
+- manager (if permissions allow)
+
+may access these pages.
+
+3. Customer Behavior
+
+If a logged-in user with role "customer" attempts to access any admin page:
+
+DO NOT show:
+- admin dashboard
+- admin navigation
+- admin menu
+- admin widgets
+- admin statistics
+- admin content
+
+Instead:
+
+Automatically redirect the user to:
+
+/profile
+
+or
+
+/user-dashboard
+
+whichever is the current customer dashboard.
+
+The redirect should be immediate and seamless.
+
+4. Guest Behavior
+
+If a visitor is not logged in and tries to access admin pages:
+
+Redirect to:
+
+/login
+
+After login:
+- customer → user dashboard
+- admin → admin dashboard
+
+5. UI Protection
+
+Hide all admin-related UI elements from customers.
+
+Customers must never see:
+- Admin button
+- Admin menu item
+- Admin sidebar
+- Admin dashboard links
+
+These should only be visible to authorized roles.
+
+6. API Protection
+
+Protect backend APIs as well.
+
+Customers must not be able to access admin data through URLs, API calls, browser dev tools, or direct requests.
+
+Verify all admin endpoints require authorization.
+
+7. Unauthorized Access Page
+
+Create a professional 403 page.
+
+Message:
+
+"شما دسترسی لازم برای مشاهده این بخش را ندارید."
+
+Include:
+- Return to Home button
+- Go to Dashboard button
+
+Use the site's pastel RTL design.
+
+8. Testing Requirements
+
+Verify:
+
+- Guest → /admin → redirect to /login
+- Customer → /admin → redirect to /profile
+- Admin → /admin → access granted
+- Manager → access based on permissions
+- No admin content visible to customers
+- No admin APIs accessible to customers
+- No console errors
+- No build errors
+
+This update must be production-ready and fully secure.

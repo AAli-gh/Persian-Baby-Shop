@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, and, lte } from "drizzle-orm";
 import { db, discountsTable } from "@workspace/db";
 import { CreateDiscountBody, ValidateDiscountBody } from "@workspace/api-zod";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 
@@ -27,7 +28,7 @@ router.get("/discounts", async (_req, res): Promise<void> => {
   res.json(discounts.map(enrichDiscount));
 });
 
-router.post("/discounts", async (req, res): Promise<void> => {
+router.post("/discounts", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateDiscountBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const data: Record<string, unknown> = {
@@ -40,7 +41,7 @@ router.post("/discounts", async (req, res): Promise<void> => {
   res.status(201).json(enrichDiscount(disc));
 });
 
-router.delete("/discounts/:id", async (req, res): Promise<void> => {
+router.delete("/discounts/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   await db.delete(discountsTable).where(eq(discountsTable.id, id));

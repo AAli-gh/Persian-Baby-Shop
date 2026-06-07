@@ -1,6 +1,8 @@
 import { Router, type IRouter } from "express";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
+router.use(requireAuth, requireAdmin);
 
 const SMS_TEMPLATES = [
   { id: 1, name: "کد تایید OTP", type: "otp", text: "کد تایید کودک‌لند شما: {code}\nاین کد ۵ دقیقه اعتبار دارد.", isActive: true },

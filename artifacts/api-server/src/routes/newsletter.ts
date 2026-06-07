@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, newslettersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 
@@ -33,18 +34,18 @@ router.post("/newsletter/subscribe", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/newsletter/subscribers", async (req, res) => {
+router.get("/newsletter/subscribers", requireAuth, requireAdmin, async (req, res) => {
   const subs = await db.select().from(newslettersTable).orderBy(desc(newslettersTable.createdAt));
   res.json({ subscribers: subs, total: subs.length, active: subs.filter(s => s.isActive).length });
 });
 
-router.delete("/newsletter/subscribers/:id", async (req, res): Promise<void> => {
+router.delete("/newsletter/subscribers/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const id = parseInt(req.params["id"] ?? "0", 10);
   await db.update(newslettersTable).set({ isActive: false }).where(eq(newslettersTable.id, id));
   res.json({ ok: true });
 });
 
-router.get("/newsletter/export", async (_req, res) => {
+router.get("/newsletter/export", requireAuth, requireAdmin, async (_req, res) => {
   const subs = await db.select().from(newslettersTable).where(eq(newslettersTable.isActive, true)).orderBy(desc(newslettersTable.createdAt));
   const csv = ["email,name,source,date", ...subs.map(s => `${s.email},${s.name || ""},${s.source},${s.createdAt.toISOString().slice(0, 10)}`)].join("\n");
   res.setHeader("Content-Type", "text/csv; charset=utf-8");

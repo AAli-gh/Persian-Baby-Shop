@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Heart, User, Menu, Search } from "lucide-react";
+import { ShoppingBag, Heart, User, Menu, Search, LayoutDashboard } from "lucide-react";
 import { useCartSession } from "@/lib/cart";
 import { useGetCart, useListCategories } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,15 @@ export function Header() {
             </Button>
           </Link>
 
+          {/* Admin shortcut — admin/manager only */}
+          {user && (user.role === "admin" || user.role === "manager") && (
+            <Link href="/admin" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 hover:bg-purple-50 hover:text-purple-600" title="پنل مدیریت">
+                <LayoutDashboard style={{ width: 18, height: 18 }} />
+              </Button>
+            </Link>
+          )}
+
           {/* Profile */}
           <Link href={user ? "/profile" : "/login"}>
             <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 hover:bg-pink-50 hover:text-pink-500">
@@ -158,6 +167,7 @@ export function Header() {
                         { href: "/contact", label: "تماس با ما" },
                         { href: "/wishlist", label: "علاقه‌مندی‌ها" },
                         { href: user ? "/profile" : "/login", label: user ? "پروفایل" : "ورود / ثبت‌نام" },
+                        ...(user && (user.role === "admin" || user.role === "manager") ? [{ href: "/admin", label: "پنل مدیریت" }] : []),
                       ].map(({ href, label }) => (
                         <Link
                           key={href}

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -28,7 +29,7 @@ const upload = multer({
   },
 });
 
-router.post("/upload", upload.single("file"), (req, res): void => {
+router.post("/upload", requireAuth, requireAdmin, upload.single("file"), (req, res): void => {
   if (!req.file) {
     res.status(400).json({ error: "No file uploaded" });
     return;

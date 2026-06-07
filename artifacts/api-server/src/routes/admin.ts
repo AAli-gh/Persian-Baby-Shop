@@ -1,8 +1,10 @@
 import { Router, type IRouter } from "express";
 import { desc, gte, sql, eq, lte } from "drizzle-orm";
 import { db, ordersTable, orderItemsTable, productsTable, usersTable } from "@workspace/db";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
+router.use(requireAuth, requireAdmin);
 
 router.get("/admin/stats", async (_req, res): Promise<void> => {
   const now = new Date();

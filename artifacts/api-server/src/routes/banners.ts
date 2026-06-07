@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, bannersTable } from "@workspace/db";
 import { CreateBannerBody, UpdateBannerBody } from "@workspace/api-zod";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 
@@ -10,14 +11,14 @@ router.get("/banners", async (_req, res): Promise<void> => {
   res.json(banners.map((b) => ({ ...b })));
 });
 
-router.post("/banners", async (req, res): Promise<void> => {
+router.post("/banners", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateBannerBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [banner] = await db.insert(bannersTable).values(parsed.data).returning();
   res.status(201).json(banner);
 });
 
-router.patch("/banners/:id", async (req, res): Promise<void> => {
+router.patch("/banners/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   const parsed = UpdateBannerBody.safeParse(req.body);
@@ -27,7 +28,7 @@ router.patch("/banners/:id", async (req, res): Promise<void> => {
   res.json(banner);
 });
 
-router.delete("/banners/:id", async (req, res): Promise<void> => {
+router.delete("/banners/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   await db.delete(bannersTable).where(eq(bannersTable.id, id));

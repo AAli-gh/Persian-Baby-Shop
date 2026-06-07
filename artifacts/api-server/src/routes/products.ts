@@ -10,6 +10,7 @@ import {
   DeleteProductParams,
   GetRelatedProductsParams,
 } from "@workspace/api-zod";
+import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 
@@ -104,7 +105,7 @@ router.get("/products/:id", async (req, res): Promise<void> => {
   res.json(await enrichProduct(product));
 });
 
-router.patch("/products/:id", async (req, res): Promise<void> => {
+router.patch("/products/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   const parsed = UpdateProductBody.safeParse(req.body);
@@ -117,7 +118,7 @@ router.patch("/products/:id", async (req, res): Promise<void> => {
   res.json(await enrichProduct(product));
 });
 
-router.delete("/products/:id", async (req, res): Promise<void> => {
+router.delete("/products/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   await db.delete(productsTable).where(eq(productsTable.id, id));
@@ -135,7 +136,7 @@ router.get("/products/:id/related", async (req, res): Promise<void> => {
   res.json(await Promise.all(related.map(enrichProduct)));
 });
 
-router.post("/products", async (req, res): Promise<void> => {
+router.post("/products", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateProductBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const data: Record<string, unknown> = {
