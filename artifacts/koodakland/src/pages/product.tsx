@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartSession } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingBag, Star, Minus, Plus, Package, Shield, Truck } from "lucide-react";
+import { StockNotifyForm } from "@/components/product/StockNotifyForm";
 
 async function fetchProductBySlug(slug: string): Promise<Product> {
   const res = await fetch(`/api/products?limit=100&page=1`);
@@ -152,21 +153,25 @@ export default function ProductPage() {
 
             <Separator />
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-muted rounded-full px-2 py-1">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-background transition-colors">
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="w-8 text-center font-bold">{quantity.toLocaleString("fa-IR")}</span>
-                <button onClick={() => setQuantity(q => Math.min(product.stock ?? 99, q + 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-background transition-colors">
-                  <Plus className="w-4 h-4" />
-                </button>
+            {(product.stock ?? 0) === 0 ? (
+              <StockNotifyForm productId={product.id} />
+            ) : (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-muted rounded-full px-2 py-1">
+                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-background transition-colors">
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-8 text-center font-bold">{quantity.toLocaleString("fa-IR")}</span>
+                  <button onClick={() => setQuantity(q => Math.min(product.stock ?? 99, q + 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-background transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <Button size="lg" className="flex-1 rounded-full font-bold shadow-md shadow-primary/20 gap-2" onClick={handleAddToCart} disabled={addToCart.isPending}>
+                  <ShoppingBag className="w-5 h-5" />
+                  {addToCart.isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
+                </Button>
               </div>
-              <Button size="lg" className="flex-1 rounded-full font-bold shadow-md shadow-primary/20 gap-2" onClick={handleAddToCart} disabled={(product.stock ?? 0) === 0 || addToCart.isPending}>
-                <ShoppingBag className="w-5 h-5" />
-                {addToCart.isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
-              </Button>
-            </div>
+            )}
 
             <div className="grid grid-cols-3 gap-3 mt-2">
               {[{ icon: Truck, text: "ارسال سریع" }, { icon: Shield, text: "ضمانت اصالت" }, { icon: Package, text: "بسته‌بندی ایمن" }].map((item) => (

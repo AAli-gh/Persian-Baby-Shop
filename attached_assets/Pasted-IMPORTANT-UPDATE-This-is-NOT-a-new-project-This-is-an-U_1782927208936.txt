@@ -1,0 +1,319 @@
+IMPORTANT UPDATE
+
+This is NOT a new project.
+
+This is an UPDATE to the existing Persian RTL baby & kids e-commerce website.
+
+DO NOT redesign or remove any existing functionality.
+
+Keep every existing page, database, API, admin feature, blog, inventory system, SEO, search, responsive layout, authentication, wishlist, shopping cart, coupons, analytics, and UI working exactly as they are.
+
+Only ADD the following new production-ready features.
+
+The project must remain:
+- Persian RTL
+- Mobile-first
+- Responsive
+- Production-ready
+- TypeScript safe
+- No build errors
+- No console errors
+
+==========================================================
+1. BACK IN STOCK EMAIL NOTIFICATIONS
+==========================================================
+
+Create a complete "Notify Me When Available" system.
+
+When a product inventory reaches zero:
+
+Replace the "Add to Cart" button with:
+
+"موجود شد به من اطلاع بده"
+
+Requirements:
+
+- User enters email address
+- Validate email
+- Prevent duplicate subscriptions
+- Save subscriptions in database
+- Link subscriptions to product ID
+- Show success message
+
+Admin Panel:
+
+- View notification requests
+- Number of subscribers per product
+- Export subscribers
+- Remove subscribers
+
+Inventory Integration:
+
+Whenever inventory changes from 0 to greater than 0:
+
+Automatically mark all subscribers as pending notification.
+
+Prepare email sending integration for:
+- Resend
+- Brevo
+
+Do not require paid configuration.
+
+Architecture should be production-ready.
+
+==========================================================
+2. ADVANCED ADMIN REPORTING
+==========================================================
+
+Create a professional reporting dashboard.
+
+Dashboard includes:
+
+Sales Overview
+
+- Today
+- This Week
+- This Month
+- This Year
+
+Revenue
+
+Orders
+
+Average Order Value
+
+Gross Revenue
+
+Estimated Profit
+
+Profit Margin
+
+Products Reports
+
+- Best Selling Products
+- Worst Selling Products
+- Out of Stock Products
+- Low Stock Products
+
+Customer Reports
+
+- New Customers
+- Returning Customers
+
+Charts
+
+- Daily Sales
+- Monthly Revenue
+- Top Categories
+- Top Products
+
+Export
+
+Allow exporting reports to:
+
+- Excel (.xlsx)
+- PDF
+
+Admin can filter reports by:
+
+- Date
+- Category
+- Product
+- Status
+
+==========================================================
+3. ADVANCED WISHLIST SYSTEM
+==========================================================
+
+Upgrade the wishlist feature.
+
+Instead of one wishlist:
+
+Users can create multiple lists.
+
+Examples:
+
+- برای نوزاد
+- هدیه
+- خرید ماه آینده
+- علاقه‌مندی‌ها
+
+Features:
+
+Create list
+
+Rename list
+
+Delete list
+
+Move products between lists
+
+Copy products
+
+Favorite list
+
+Default list
+
+Share list (future ready)
+
+Beautiful modal UI
+
+Responsive
+
+Persian RTL
+
+==========================================================
+4. UX IMPROVEMENTS
+==========================================================
+
+Implement professional UX improvements.
+
+----------------------------------------------------------
+Skeleton Loading
+----------------------------------------------------------
+
+Create beautiful skeleton loaders for:
+
+Homepage
+
+Categories
+
+Products
+
+Product Details
+
+Cart
+
+Wishlist
+
+Orders
+
+Blog
+
+Admin Dashboard
+
+Search Results
+
+Use smooth animated placeholders.
+
+----------------------------------------------------------
+404 Page
+----------------------------------------------------------
+
+Create custom page.
+
+Beautiful illustration.
+
+Message:
+
+"صفحه موردنظر پیدا نشد."
+
+Buttons:
+
+Return Home
+
+Continue Shopping
+
+Search Products
+
+----------------------------------------------------------
+500 Error Page
+----------------------------------------------------------
+
+Create professional server error page.
+
+Message:
+
+"مشکلی در سرور به وجود آمده است."
+
+Buttons:
+
+Reload
+
+Go Home
+
+----------------------------------------------------------
+Smooth Animations
+----------------------------------------------------------
+
+Improve animations everywhere.
+
+Use:
+
+Framer Motion
+
+Requirements:
+
+Page transitions
+
+Fade animations
+
+Hover animations
+
+Button animations
+
+Card animations
+
+Image animations
+
+Modal animations
+
+Dropdown animations
+
+Loading animations
+
+Smooth scrolling
+
+No excessive animations.
+
+----------------------------------------------------------
+Back To Top Button
+----------------------------------------------------------
+
+Floating button.
+
+Appears after scrolling.
+
+Smooth scroll to top.
+
+Responsive.
+
+Beautiful pastel design.
+
+==========================================================
+5. QUALITY REQUIREMENTS
+==========================================================
+
+Before finishing verify:
+
+✓ No existing functionality is removed
+
+✓ No existing UI is changed unnecessarily
+
+✓ No build errors
+
+✓ No TypeScript errors
+
+✓ No database conflicts
+
+✓ Responsive on desktop
+
+✓ Responsive on tablet
+
+✓ Responsive on mobile
+
+✓ RTL works correctly
+
+✓ Admin permissions remain secure
+
+✓ Customer permissions remain secure
+
+✓ APIs remain compatible
+
+✓ Existing wishlist data is migrated safely
+
+✓ Existing inventory continues working
+
+✓ Existing admin dashboard continues working
+
+Everything must integrate seamlessly into the existing application without breaking any current features.

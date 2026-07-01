@@ -11,3 +11,5 @@ export * from "./banners";
 export * from "./discounts";
 export * from "./shipping";
 export * from "./newsletters";
+export * from "./stock-notifications";
+export * from "./wishlists";

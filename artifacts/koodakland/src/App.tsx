@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import ServerError from "@/pages/server-error";
 import { RootLayout } from "@/components/layout/RootLayout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { AuthProvider } from "@/lib/auth";
@@ -44,6 +45,8 @@ import AdminAnalytics from "@/pages/admin/analytics";
 import AdminInventory from "@/pages/admin/inventory";
 import AdminSMS from "@/pages/admin/sms";
 import AdminNewsletter from "@/pages/admin/newsletter";
+import AdminReports from "@/pages/admin/reports";
+import AdminStockNotifications from "@/pages/admin/stock-notifications";
 
 setAuthTokenGetter(() => localStorage.getItem("auth_token"));
 
@@ -73,6 +76,8 @@ function AdminRouter() {
         <Route path="/admin/shipping" component={AdminShipping} />
         <Route path="/admin/sms" component={AdminSMS} />
         <Route path="/admin/newsletter" component={AdminNewsletter} />
+        <Route path="/admin/reports" component={AdminReports} />
+        <Route path="/admin/stock-notifications" component={AdminStockNotifications} />
         <Route component={NotFound} />
         </Switch>
       </AdminLayout>
@@ -111,6 +116,7 @@ function AppRouter() {
         <Route path="/return-policy" component={ReturnPolicy} />
         <Route path="/baby-checklists" component={BabyChecklists} />
         <Route path="/unauthorized" component={Unauthorized} />
+        <Route path="/server-error" component={ServerError} />
         <Route component={NotFound} />
       </Switch>
     </RootLayout>

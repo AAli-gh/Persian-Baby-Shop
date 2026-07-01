@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { MobileNav } from "./MobileNav";
+import { BackToTop } from "./BackToTop";
 import { useLocation } from "wouter";
 
 export function RootLayout({ children }: { children: ReactNode }) {
@@ -22,6 +23,7 @@ export function RootLayout({ children }: { children: ReactNode }) {
         <Footer />
       </div>
       <MobileNav />
+      <BackToTop />
     </div>
   );
 }

@@ -19,6 +19,9 @@ import inventoryRouter from "./inventory";
 import newsletterRouter from "./newsletter";
 import bestSellersRouter from "./best-sellers";
 import sitemapRouter from "./sitemap";
+import stockNotificationsRouter from "./stock-notifications";
+import reportsRouter from "./reports";
+import wishlistsRouter from "./wishlists";
 
 const router: IRouter = Router();
 
@@ -28,6 +31,7 @@ router.use(categoriesRouter);
 router.use(searchRouter);
 router.use(cartRouter);
 router.use(wishlistRouter);
+router.use(wishlistsRouter);
 router.use(ordersRouter);
 router.use(reviewsRouter);
 router.use(usersRouter);
@@ -42,5 +46,7 @@ router.use(inventoryRouter);
 router.use(newsletterRouter);
 router.use(bestSellersRouter);
 router.use(sitemapRouter);
+router.use(stockNotificationsRouter);
+router.use(reportsRouter);
 
 export default router;
