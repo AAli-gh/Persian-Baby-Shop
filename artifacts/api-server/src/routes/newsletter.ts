@@ -40,7 +40,7 @@ router.get("/newsletter/subscribers", requireAuth, requireAdmin, async (req, res
 });
 
 router.delete("/newsletter/subscribers/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params["id"] ?? "0", 10);
+  const id = parseInt(String(req.params["id"] ?? "0"), 10);
   await db.update(newslettersTable).set({ isActive: false }).where(eq(newslettersTable.id, id));
   res.json({ ok: true });
 });

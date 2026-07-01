@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { verifyToken } from "../lib/jwt";
 
 type UserRow = typeof usersTable.$inferSelect;
 
@@ -20,9 +21,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
   const token = authHeader.slice(7);
   try {
-    const decoded = Buffer.from(token, "base64").toString("utf8");
-    const userId = parseInt(decoded.split(":")[0]!, 10);
-    if (!userId || Number.isNaN(userId)) throw new Error("invalid token");
+    const payload = verifyToken(token);
+    const userId = payload.sub;
+    if (!userId || Number.isNaN(userId)) throw new Error("invalid token payload");
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
     if (!user) { res.status(401).json({ error: "کاربر یافت نشد" }); return; }
     req.user = user;

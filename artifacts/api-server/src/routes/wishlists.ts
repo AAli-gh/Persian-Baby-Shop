@@ -56,7 +56,7 @@ router.post("/wishlists", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.patch("/wishlists/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params["id"] ?? "0", 10);
+  const id = parseInt(String(req.params["id"] ?? "0"), 10);
   const parsed = z.object({ name: z.string().min(1).max(50).optional(), isDefault: z.boolean().optional() }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   if (parsed.data.isDefault) {
@@ -69,7 +69,7 @@ router.patch("/wishlists/:id", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.delete("/wishlists/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params["id"] ?? "0", 10);
+  const id = parseInt(String(req.params["id"] ?? "0"), 10);
   const [list] = await db.select().from(wishlistsTable).where(eq(wishlistsTable.id, id));
   if (!list) { res.status(404).json({ error: "لیست یافت نشد" }); return; }
   if (list.isDefault) { res.status(400).json({ error: "نمی‌توانید لیست پیش‌فرض را حذف کنید" }); return; }
@@ -78,7 +78,7 @@ router.delete("/wishlists/:id", requireAuth, async (req, res): Promise<void> => 
 });
 
 router.post("/wishlists/:id/items", requireAuth, async (req, res): Promise<void> => {
-  const wishlistId = parseInt(req.params["id"] ?? "0", 10);
+  const wishlistId = parseInt(String(req.params["id"] ?? "0"), 10);
   const parsed = z.object({ productId: z.number().int() }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [item] = await db.insert(wishlistItemsTable).values({ wishlistId, productId: parsed.data.productId }).returning().catch(() => [null]);
@@ -87,8 +87,8 @@ router.post("/wishlists/:id/items", requireAuth, async (req, res): Promise<void>
 });
 
 router.delete("/wishlists/:id/items/:productId", requireAuth, async (req, res): Promise<void> => {
-  const wishlistId = parseInt(req.params["id"] ?? "0", 10);
-  const productId = parseInt(req.params["productId"] ?? "0", 10);
+  const wishlistId = parseInt(String(req.params["id"] ?? "0"), 10);
+  const productId = parseInt(String(req.params["productId"] ?? "0"), 10);
   await db.delete(wishlistItemsTable).where(and(eq(wishlistItemsTable.wishlistId, wishlistId), eq(wishlistItemsTable.productId, productId)));
   res.sendStatus(204);
 });
@@ -112,7 +112,7 @@ router.post("/wishlists/default/items", requireAuth, async (req, res): Promise<v
 
 router.delete("/wishlists/default/items/:productId", requireAuth, async (req, res): Promise<void> => {
   const userId = parseInt(String(req.query["userId"] ?? "0"), 10);
-  const productId = parseInt(req.params["productId"] ?? "0", 10);
+  const productId = parseInt(String(req.params["productId"] ?? "0"), 10);
   const [list] = await db.select().from(wishlistsTable).where(and(eq(wishlistsTable.userId, userId), eq(wishlistsTable.isDefault, true)));
   if (!list) { res.sendStatus(204); return; }
   await db.delete(wishlistItemsTable).where(and(eq(wishlistItemsTable.wishlistId, list.id), eq(wishlistItemsTable.productId, productId)));

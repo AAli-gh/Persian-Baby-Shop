@@ -37,7 +37,7 @@ router.post("/discounts", requireAuth, requireAdmin, async (req, res): Promise<v
     minOrder: parsed.data.minOrder != null ? String(parsed.data.minOrder) : null,
     expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : null,
   };
-  const [disc] = await db.insert(discountsTable).values(data as Parameters<typeof db.insert>[0]["values"]).returning();
+  const [disc] = await db.insert(discountsTable).values(data as typeof discountsTable.$inferInsert).returning();
   res.status(201).json(enrichDiscount(disc));
 });
 

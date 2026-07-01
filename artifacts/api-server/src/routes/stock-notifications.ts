@@ -62,7 +62,7 @@ router.get("/admin/stock-notifications", requireAuth, requireAdmin, async (req, 
 });
 
 router.delete("/admin/stock-notifications/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(req.params["id"] ?? "0", 10);
+  const id = parseInt(String(req.params["id"] ?? "0"), 10);
   await db.delete(stockNotificationsTable).where(eq(stockNotificationsTable.id, id));
   res.sendStatus(204);
 });

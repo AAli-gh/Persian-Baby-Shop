@@ -145,7 +145,7 @@ router.post("/products", requireAuth, requireAdmin, async (req, res): Promise<vo
     salePrice: parsed.data.salePrice != null ? String(parsed.data.salePrice) : null,
     flashSaleEndsAt: parsed.data.flashSaleEndsAt ? new Date(parsed.data.flashSaleEndsAt) : null,
   };
-  const [product] = await db.insert(productsTable).values(data as Parameters<typeof db.insert>[0]["values"]).returning();
+  const [product] = await db.insert(productsTable).values(data as typeof productsTable.$inferInsert).returning();
   res.status(201).json(await enrichProduct(product));
 });
 
