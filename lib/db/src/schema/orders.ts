@@ -7,6 +7,7 @@ export const ordersTable = pgTable("orders", {
   userId: integer("user_id"),
   orderNumber: text("order_number").notNull().unique(),
   status: text("status").notNull().default("pending"),
+  inventoryReserved: boolean("inventory_reserved").notNull().default(false),
   subtotal: numeric("subtotal", { precision: 12, scale: 0 }).notNull(),
   shippingCost: numeric("shipping_cost", { precision: 12, scale: 0 }).notNull().default("0"),
   discount: numeric("discount", { precision: 12, scale: 0 }).notNull().default("0"),

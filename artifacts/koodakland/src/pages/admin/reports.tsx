@@ -23,22 +23,20 @@ const PERIOD_LABELS: Record<string, string> = { today: "امروز", week: "هف
 const STATUS_FA: Record<string, string> = { pending: "در انتظار", processing: "پردازش", shipped: "ارسال", delivered: "تحویل", cancelled: "لغو" };
 
 export default function AdminReports() {
-  const { token } = useAuth();
   const [period, setPeriod] = useState("month");
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/reports?period=${period}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`/api/admin/reports?period=${period}`, { credentials: "include" });
       const json = await res.json();
       setData(json);
     } finally {
       setLoading(false);
     }
-  }, [token, period]);
+  }, [period]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

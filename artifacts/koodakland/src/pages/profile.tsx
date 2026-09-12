@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Package, Heart, Edit3, LogOut } from "lucide-react";
+import { User, Package, Heart, Edit3, LogOut, LogOutIcon } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 
 const ORDER_STATUS: Record<string, { label: string; color: string }> = {
@@ -19,7 +19,7 @@ const ORDER_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 export default function Profile() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, logoutAll, updateUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [tab, setTab] = useState<"orders" | "wishlist" | "profile">("orders");
@@ -42,6 +42,14 @@ export default function Profile() {
     });
   };
 
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAll();
+    } catch {
+      toast({ title: "خطا", description: "خروج از نشست‌ها انجام نشد", variant: "destructive" });
+    }
+  };
+
   const tabs = [
     { id: "orders", label: "سفارش‌ها", icon: Package },
     { id: "wishlist", label: "علاقه‌مندی‌ها", icon: Heart },
@@ -59,9 +67,14 @@ export default function Profile() {
             <h1 className="text-xl font-black">{user.name || "کاربر"}</h1>
             <p className="text-muted-foreground text-sm">{user.mobile}</p>
           </div>
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive rounded-full gap-2" onClick={() => { logout(); navigate("/"); }}>
-            <LogOut className="w-4 h-4" /> خروج
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive rounded-full gap-2" onClick={() => { logout(); navigate("/"); }}>
+              <LogOut className="w-4 h-4" /> خروج
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive rounded-full gap-2" onClick={handleLogoutAll}>
+              <LogOutIcon className="w-4 h-4" /> خروج از همه دستگاه‌ها
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">

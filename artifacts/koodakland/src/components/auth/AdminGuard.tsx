@@ -7,20 +7,21 @@ interface AdminGuardProps {
 }
 
 export function AdminGuard({ children }: AdminGuardProps) {
-  const { user, token } = useAuth();
+  const { user, isLoaded } = useAuth();
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!token || !user) {
+    if (!isLoaded) return;
+    if (!user) {
       navigate("/login");
       return;
     }
     if (user.role !== "admin" && user.role !== "manager") {
       navigate("/unauthorized");
     }
-  }, [user, token, navigate]);
+  }, [user, isLoaded, navigate]);
 
-  if (!token || !user) return null;
+  if (!isLoaded || !user) return null;
   if (user.role !== "admin" && user.role !== "manager") return null;
 
   return <>{children}</>;

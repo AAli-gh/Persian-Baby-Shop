@@ -29,15 +29,14 @@ interface NotifData {
   pending: number;
 }
 
-function useNotifications(token: string | null) {
+function useNotifications() {
   const [data, setData] = useState<NotifData | null>(null);
   const [loading, setLoading] = useState(false);
 
   const refetch = async () => {
-    if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/stock-notifications", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("/api/admin/stock-notifications", { credentials: "include" });
       const json = await res.json();
       setData(json);
     } finally {
@@ -49,8 +48,7 @@ function useNotifications(token: string | null) {
 }
 
 export default function AdminStockNotifications() {
-  const { token } = useAuth();
-  const { data, loading, refetch } = useNotifications(token);
+  const { data, loading, refetch } = useNotifications();
   const [initialized, setInitialized] = useState(false);
 
   if (!initialized) {
@@ -59,13 +57,11 @@ export default function AdminStockNotifications() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!token) return;
-    await fetch(`/api/admin/stock-notifications/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetch(`/api/admin/stock-notifications/${id}`, { method: "DELETE", credentials: "include" });
     await refetch();
   };
 
   const handleExport = () => {
-    if (!token) return;
     const a = document.createElement("a");
     a.href = "/api/admin/stock-notifications/export";
     a.click();

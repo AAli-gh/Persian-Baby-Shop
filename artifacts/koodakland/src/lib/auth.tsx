@@ -1,57 +1,74 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useClerk, useUser } from "@clerk/react";
 import { User } from "@workspace/api-client-react";
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
   logout: () => void;
+  logoutAll: () => Promise<void>;
   updateUser: (user: User) => void;
+  isLoaded: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { signOut } = useClerk();
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [localLoaded, setLocalLoaded] = useState(false);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
-    if (storedToken && storedUser) {
-      try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse stored user", e);
-      }
+    if (!clerkLoaded) return;
+    if (!clerkUser) {
+      setUser(null);
+      setLocalLoaded(true);
+      return;
     }
-  }, []);
 
-  const login = (newToken: string, newUser: User) => {
-    localStorage.setItem("auth_token", newToken);
-    localStorage.setItem("auth_user", JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
-  };
+    let cancelled = false;
+    setLocalLoaded(false);
+    fetch("/api/auth/me", { credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to load account");
+        return (await response.json()) as User;
+      })
+      .then((localUser) => {
+        if (!cancelled) setUser(localUser);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLocalLoaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [clerkLoaded, clerkUser]);
 
   const logout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
-    setToken(null);
     setUser(null);
+    void signOut({ redirectUrl: "/" });
+  };
+
+  const logoutAll = async () => {
+    const response = await fetch("/api/auth/sign-out-all", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!response.ok) throw new Error("Unable to sign out all sessions");
+    setUser(null);
+    await signOut({ redirectUrl: "/" });
   };
 
   const updateUser = (updatedUser: User) => {
-    localStorage.setItem("auth_user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, token: null, logout, logoutAll, updateUser, isLoaded: clerkLoaded && localLoaded }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

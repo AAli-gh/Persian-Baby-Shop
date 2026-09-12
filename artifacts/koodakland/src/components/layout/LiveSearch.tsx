@@ -207,7 +207,7 @@ export function DesktopSearch() {
 
   const { data, isFetching } = useSearchProducts(
     { q: debouncedQuery, limit: 8 },
-    { query: { enabled: debouncedQuery.length > 1 } }
+    { query: { queryKey: ["live-search", debouncedQuery], enabled: debouncedQuery.length > 1 } }
   );
 
   const showDropdown = open && (debouncedQuery.length > 1 || query.length === 0);
@@ -297,7 +297,7 @@ export function MobileSearchModal() {
 
   const { data, isFetching } = useSearchProducts(
     { q: debouncedQuery, limit: 8 },
-    { query: { enabled: debouncedQuery.length > 1 } }
+    { query: { queryKey: ["live-search-mobile", debouncedQuery], enabled: debouncedQuery.length > 1 } }
   );
 
   const handleClose = useCallback(() => setOpen(false), []);
