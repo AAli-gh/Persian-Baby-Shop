@@ -76,15 +76,15 @@ export default function Cart() {
                   <span className="text-sm font-black text-primary">{item.price.toLocaleString("fa-IR")} تومان</span>
                   <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center gap-2 bg-muted rounded-full px-2 py-1">
-                      <button onClick={() => updateItem.mutate({ itemId: item.id, data: { quantity: Math.max(1, item.quantity - 1) } })} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-background">
+                      <button onClick={() => updateItem.mutate({ itemId: item.id, data: { quantity: Math.max(1, item.quantity - 1), sessionId } })} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-background">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="w-6 text-center text-sm font-bold">{item.quantity.toLocaleString("fa-IR")}</span>
-                      <button onClick={() => updateItem.mutate({ itemId: item.id, data: { quantity: item.quantity + 1 } })} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-background">
+                      <button onClick={() => updateItem.mutate({ itemId: item.id, data: { quantity: item.quantity + 1, sessionId } })} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-background">
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                    <button onClick={() => removeItem.mutate({ itemId: item.id })} className="text-destructive hover:text-destructive/80 transition-colors">
+                    <button onClick={() => removeItem.mutate({ itemId: item.id, data: { sessionId } })} className="text-destructive hover:text-destructive/80 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

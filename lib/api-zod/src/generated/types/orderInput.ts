@@ -7,9 +7,15 @@
  */
 
 export interface OrderInput {
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
   sessionId: string;
-  /** @nullable */
-  userId?: number | null;
+  /**
+   * @minLength 1
+   * @maxLength 2000
+   */
   addressSnapshot: string;
   shippingMethod: string;
   /** @nullable */

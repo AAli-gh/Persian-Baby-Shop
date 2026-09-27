@@ -7,7 +7,16 @@
  */
 
 export interface CartItemInput {
+  /** @minimum 1 */
   productId: number;
+  /**
+   * @minimum 1
+   * @maximum 99
+   */
   quantity: number;
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
   sessionId: string;
 }

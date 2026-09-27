@@ -145,13 +145,39 @@ export interface Cart {
 }
 
 export interface CartItemInput {
+  /** @minimum 1 */
   productId: number;
+  /**
+   * @minimum 1
+   * @maximum 99
+   */
   quantity: number;
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
   sessionId: string;
 }
 
 export interface CartItemUpdate {
+  /**
+   * @minimum 1
+   * @maximum 99
+   */
   quantity: number;
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
+  sessionId: string;
+}
+
+export interface CartItemRemove {
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
+  sessionId: string;
 }
 
 export interface WishlistItem {
@@ -207,9 +233,15 @@ export interface Order {
 }
 
 export interface OrderInput {
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
   sessionId: string;
-  /** @nullable */
-  userId?: number | null;
+  /**
+   * @minLength 1
+   * @maxLength 2000
+   */
   addressSnapshot: string;
   shippingMethod: string;
   /** @nullable */
@@ -249,11 +281,14 @@ export interface Review {
 }
 
 export interface ReviewInput {
+  /** @minimum 1 */
   productId: number;
-  /** @nullable */
-  userId?: number | null;
-  authorName: string;
+  /**
+   * @minimum 1
+   * @maximum 5
+   */
   rating: number;
+  /** @maxLength 1000 */
   comment?: string;
 }
 
@@ -535,7 +570,11 @@ export type SearchProductsParams = {
 };
 
 export type GetCartParams = {
-  sessionId?: string;
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
+  sessionId: string;
 };
 
 export type GetWishlistParams = {

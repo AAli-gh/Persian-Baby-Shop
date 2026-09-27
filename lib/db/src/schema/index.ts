@@ -13,3 +13,4 @@ export * from "./shipping";
 export * from "./newsletters";
 export * from "./stock-notifications";
 export * from "./wishlists";
+export * from "./sms";

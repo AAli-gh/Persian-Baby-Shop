@@ -2,15 +2,17 @@ import { Router, type IRouter } from "express";
 import { db, stockNotificationsTable, productsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
-import { z } from "zod";
+import { publicWriteLimiter } from "../middleware/rateLimit";
+import { StockNotifySubscribeInput } from "../lib/validation";
+import { parseId, requireId } from "../lib/http";
+import { toCsv } from "../lib/csv";
 
 const router: IRouter = Router();
 
-const SubscribeBody = z.object({ email: z.string().email() });
-
-router.post("/products/:id/notify", async (req, res): Promise<void> => {
-  const productId = parseInt(req.params["id"] ?? "0", 10);
-  const parsed = SubscribeBody.safeParse(req.body);
+router.post("/products/:id/notify", publicWriteLimiter, async (req, res): Promise<void> => {
+  const productId = requireId(req, res);
+  if (productId === null) return;
+  const parsed = StockNotifySubscribeInput.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "ایمیل معتبر وارد کنید" }); return; }
 
   const [product] = await db.select({ id: productsTable.id, stock: productsTable.stock })
@@ -27,7 +29,7 @@ router.post("/products/:id/notify", async (req, res): Promise<void> => {
 });
 
 router.get("/admin/stock-notifications", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const productId = req.query["productId"] ? parseInt(String(req.query["productId"]), 10) : undefined;
+  const productId = parseId(req.query["productId"]) ?? undefined;
 
   let notifs;
   if (productId) {
@@ -62,7 +64,8 @@ router.get("/admin/stock-notifications", requireAuth, requireAdmin, async (req, 
 });
 
 router.delete("/admin/stock-notifications/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const id = parseInt(String(req.params["id"] ?? "0"), 10);
+  const id = requireId(req, res);
+  if (id === null) return;
   await db.delete(stockNotificationsTable).where(eq(stockNotificationsTable.id, id));
   res.sendStatus(204);
 });
@@ -71,10 +74,16 @@ router.get("/admin/stock-notifications/export", requireAuth, requireAdmin, async
   const notifs = await db.select().from(stockNotificationsTable).orderBy(desc(stockNotificationsTable.createdAt));
   const products = await db.select({ id: productsTable.id, nameFa: productsTable.nameFa }).from(productsTable);
   const productMap = new Map(products.map(p => [p.id, p.nameFa]));
-  const csv = [
-    "product_id,product_name,email,is_notified,created_at",
-    ...notifs.map(n => `${n.productId},${productMap.get(n.productId) ?? ""},${n.email},${n.isNotified},${n.createdAt.toISOString()}`),
-  ].join("\n");
+  const csv = toCsv(
+    ["product_id", "product_name", "email", "is_notified", "created_at"],
+    notifs.map((n) => [
+      n.productId,
+      productMap.get(n.productId) ?? "",
+      n.email,
+      n.isNotified,
+      n.createdAt.toISOString(),
+    ]),
+  );
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", "attachment; filename=stock-notifications.csv");
   res.send(csv);

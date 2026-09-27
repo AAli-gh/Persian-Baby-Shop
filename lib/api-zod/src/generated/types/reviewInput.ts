@@ -7,10 +7,13 @@
  */
 
 export interface ReviewInput {
+  /** @minimum 1 */
   productId: number;
-  /** @nullable */
-  userId?: number | null;
-  authorName: string;
+  /**
+   * @minimum 1
+   * @maximum 5
+   */
   rating: number;
+  /** @maxLength 1000 */
   comment?: string;
 }

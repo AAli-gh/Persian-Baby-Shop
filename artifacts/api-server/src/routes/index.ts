@@ -26,6 +26,8 @@ import wishlistsRouter from "./wishlists";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+// Before productsRouter: its `/products/:id` route would shadow this path.
+router.use(bestSellersRouter);
 router.use(productsRouter);
 router.use(categoriesRouter);
 router.use(searchRouter);
@@ -44,7 +46,6 @@ router.use(uploadRouter);
 router.use(smsRouter);
 router.use(inventoryRouter);
 router.use(newsletterRouter);
-router.use(bestSellersRouter);
 router.use(sitemapRouter);
 router.use(stockNotificationsRouter);
 router.use(reportsRouter);

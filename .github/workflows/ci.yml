@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The repo has no `packageManager` field, so the version is pinned here.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Unit tests
+        run: pnpm -r --if-present run test
+
+      - name: Build
+        # mockup-sandbox's vite config requires both of these at config load time.
+        env:
+          PORT: "5000"
+          BASE_PATH: "/"
+        run: pnpm run build
+
+      - name: Verify generated API clients match the OpenAPI spec
+        run: |
+          pnpm --filter @workspace/api-spec exec orval --config ./orval.config.ts
+          git diff --exit-code -- lib/api-zod/src/generated lib/api-client-react/src/generated

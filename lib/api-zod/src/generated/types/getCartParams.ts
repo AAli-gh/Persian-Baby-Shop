@@ -7,5 +7,9 @@
  */
 
 export type GetCartParams = {
-  sessionId?: string;
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
+  sessionId: string;
 };

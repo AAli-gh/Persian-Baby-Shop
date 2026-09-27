@@ -343,7 +343,8 @@ paths:
       parameters:
         - name: sessionId
           in: query
-          schema: { type: string }
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 128 }
       responses:
         "200":
           description: Cart
@@ -401,6 +402,12 @@ paths:
           in: path
           required: true
           schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemRemove"
       responses:
         "200":
           description: Updated cart
@@ -1209,16 +1216,23 @@ components:
     CartItemInput:
       type: object
       properties:
-        productId: { type: integer }
-        quantity: { type: integer }
-        sessionId: { type: string }
+        productId: { type: integer, minimum: 1 }
+        quantity: { type: integer, minimum: 1, maximum: 99 }
+        sessionId: { type: string, minLength: 8, maxLength: 128 }
       required: [productId, quantity, sessionId]
 
     CartItemUpdate:
       type: object
       properties:
-        quantity: { type: integer }
-      required: [quantity]
+        quantity: { type: integer, minimum: 1, maximum: 99 }
+        sessionId: { type: string, minLength: 8, maxLength: 128 }
+      required: [quantity, sessionId]
+
+    CartItemRemove:
+      type: object
+      properties:
+        sessionId: { type: string, minLength: 8, maxLength: 128 }
+      required: [sessionId]
 
     # Wishlist
     WishlistItem:
@@ -1276,9 +1290,8 @@ components:
     OrderInput:
       type: object
       properties:
-        sessionId: { type: string }
-        userId: { type: ["integer", "null"] }
-        addressSnapshot: { type: string }
+        sessionId: { type: string, minLength: 8, maxLength: 128 }
+        addressSnapshot: { type: string, minLength: 1, maxLength: 2000 }
         shippingMethod: { type: string }
         discountCode: { type: ["string", "null"] }
         notes: { type: ["string", "null"] }
@@ -1319,12 +1332,10 @@ components:
     ReviewInput:
       type: object
       properties:
-        productId: { type: integer }
-        userId: { type: ["integer", "null"] }
-        authorName: { type: string }
-        rating: { type: integer }
-        comment: { type: string }
-      required: [productId, authorName, rating]
+        productId: { type: integer, minimum: 1 }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, maxLength: 1000 }
+      required: [productId, rating]
 
     # User / Auth
     User:

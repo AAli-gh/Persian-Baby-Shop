@@ -1,24 +1,12 @@
 import { Router, type IRouter } from "express";
-import { eq, and, sql } from "drizzle-orm";
-import { db, wishlistsTable, wishlistItemsTable, productsTable, categoriesTable, reviewsTable } from "@workspace/db";
+import { eq, and, inArray, sql } from "drizzle-orm";
+import { db, wishlistsTable, wishlistItemsTable, productsTable } from "@workspace/db";
 import { requireAuth } from "../middleware/auth";
+import { enrichProducts } from "../lib/enrich";
+import { requireId } from "../lib/http";
 import { z } from "zod";
 
 const router: IRouter = Router();
-
-async function enrichProduct(p: typeof productsTable.$inferSelect) {
-  const [cat] = await db.select({ nameFa: categoriesTable.nameFa }).from(categoriesTable).where(eq(categoriesTable.id, p.categoryId));
-  const reviewStats = await db.select({ avgRating: sql<number>`avg(${reviewsTable.rating})`, count: sql<number>`count(*)` })
-    .from(reviewsTable).where(eq(reviewsTable.productId, p.id));
-  return {
-    ...p, price: Number(p.price), salePrice: p.salePrice ? Number(p.salePrice) : null, weight: p.weight ? Number(p.weight) : null,
-    images: (p.images as string[]) || [], tags: (p.tags as string[]) || [], categoryName: cat?.nameFa ?? null,
-    avgRating: reviewStats[0]?.avgRating ? Number(reviewStats[0].avgRating) : null,
-    reviewCount: Number(reviewStats[0]?.count ?? 0),
-    flashSaleEndsAt: p.flashSaleEndsAt ? p.flashSaleEndsAt.toISOString() : null,
-    createdAt: p.createdAt.toISOString(),
-  };
-}
 
 async function ensureDefaultList(userId: number): Promise<number> {
   const existing = await db.select().from(wishlistsTable)
@@ -33,19 +21,36 @@ router.get("/wishlists", requireAuth, async (req, res): Promise<void> => {
   const userId = req.user!.id;
 
   const lists = await db.select().from(wishlistsTable).where(eq(wishlistsTable.userId, userId));
-  const enriched = await Promise.all(lists.map(async (list) => {
-    const items = await db.select().from(wishlistItemsTable).where(eq(wishlistItemsTable.wishlistId, list.id));
-    const products = await Promise.all(items.map(async (item) => {
-      const [product] = await db.select().from(productsTable).where(eq(productsTable.id, item.productId));
-      return product ? { ...item, createdAt: item.createdAt.toISOString(), product: await enrichProduct(product) } : null;
-    }));
-    return { ...list, createdAt: list.createdAt.toISOString(), items: products.filter(Boolean), itemCount: products.filter(Boolean).length };
-  }));
-  res.json(enriched);
+  if (lists.length === 0) { res.json([]); return; }
+
+  const items = await db
+    .select()
+    .from(wishlistItemsTable)
+    .where(inArray(wishlistItemsTable.wishlistId, lists.map((l) => l.id)));
+  const products = items.length > 0
+    ? await db.select().from(productsTable).where(inArray(productsTable.id, [...new Set(items.map((i) => i.productId))]))
+    : [];
+  const byId = new Map((await enrichProducts(products)).map((p) => [p.id, p]));
+
+  res.json(
+    lists.map((list) => {
+      const listItems = items.flatMap((item) => {
+        if (item.wishlistId !== list.id) return [];
+        const product = byId.get(item.productId);
+        return product ? [{ ...item, createdAt: item.createdAt.toISOString(), product }] : [];
+      });
+      return {
+        ...list,
+        createdAt: list.createdAt.toISOString(),
+        items: listItems,
+        itemCount: listItems.length,
+      };
+    }),
+  );
 });
 
 router.post("/wishlists", requireAuth, async (req, res): Promise<void> => {
-  const parsed = z.object({ userId: z.number().int(), name: z.string().min(1).max(50) }).safeParse(req.body);
+  const parsed = z.object({ name: z.string().trim().min(1).max(50) }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const userId = req.user!.id;
   const existing = await db.select().from(wishlistsTable).where(eq(wishlistsTable.userId, userId));
@@ -56,7 +61,8 @@ router.post("/wishlists", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.patch("/wishlists/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(String(req.params["id"] ?? "0"), 10);
+  const id = requireId(req, res);
+  if (id === null) return;
   const parsed = z.object({ name: z.string().min(1).max(50).optional(), isDefault: z.boolean().optional() }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [owned] = await db.select().from(wishlistsTable)
@@ -71,7 +77,8 @@ router.patch("/wishlists/:id", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.delete("/wishlists/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(String(req.params["id"] ?? "0"), 10);
+  const id = requireId(req, res);
+  if (id === null) return;
   const [list] = await db.select().from(wishlistsTable)
     .where(and(eq(wishlistsTable.id, id), eq(wishlistsTable.userId, req.user!.id)));
   if (!list) { res.status(404).json({ error: "لیست یافت نشد" }); return; }
@@ -81,8 +88,9 @@ router.delete("/wishlists/:id", requireAuth, async (req, res): Promise<void> => 
 });
 
 router.post("/wishlists/:id/items", requireAuth, async (req, res): Promise<void> => {
-  const wishlistId = parseInt(String(req.params["id"] ?? "0"), 10);
-  const parsed = z.object({ productId: z.number().int() }).safeParse(req.body);
+  const wishlistId = requireId(req, res);
+  if (wishlistId === null) return;
+  const parsed = z.object({ productId: z.number().int().positive() }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [owned] = await db.select({ id: wishlistsTable.id }).from(wishlistsTable)
     .where(and(eq(wishlistsTable.id, wishlistId), eq(wishlistsTable.userId, req.user!.id)));
@@ -93,8 +101,10 @@ router.post("/wishlists/:id/items", requireAuth, async (req, res): Promise<void>
 });
 
 router.delete("/wishlists/:id/items/:productId", requireAuth, async (req, res): Promise<void> => {
-  const wishlistId = parseInt(String(req.params["id"] ?? "0"), 10);
-  const productId = parseInt(String(req.params["productId"] ?? "0"), 10);
+  const wishlistId = requireId(req, res);
+  if (wishlistId === null) return;
+  const productId = requireId(req, res, "productId");
+  if (productId === null) return;
   const [owned] = await db.select({ id: wishlistsTable.id }).from(wishlistsTable)
     .where(and(eq(wishlistsTable.id, wishlistId), eq(wishlistsTable.userId, req.user!.id)));
   if (!owned) { res.status(404).json({ error: "لیست یافت نشد" }); return; }
@@ -115,7 +125,7 @@ router.post("/wishlists/items/move", requireAuth, async (req, res): Promise<void
 });
 
 router.post("/wishlists/default/items", requireAuth, async (req, res): Promise<void> => {
-  const parsed = z.object({ userId: z.number().int(), productId: z.number().int() }).safeParse(req.body);
+  const parsed = z.object({ productId: z.number().int().positive() }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const wishlistId = await ensureDefaultList(req.user!.id);
   const [item] = await db.insert(wishlistItemsTable).values({ wishlistId, productId: parsed.data.productId }).returning().catch(() => [null]);
@@ -124,7 +134,8 @@ router.post("/wishlists/default/items", requireAuth, async (req, res): Promise<v
 
 router.delete("/wishlists/default/items/:productId", requireAuth, async (req, res): Promise<void> => {
   const userId = req.user!.id;
-  const productId = parseInt(String(req.params["productId"] ?? "0"), 10);
+  const productId = requireId(req, res, "productId");
+  if (productId === null) return;
   const [list] = await db.select().from(wishlistsTable).where(and(eq(wishlistsTable.userId, userId), eq(wishlistsTable.isDefault, true)));
   if (!list) { res.sendStatus(204); return; }
   await db.delete(wishlistItemsTable).where(and(eq(wishlistItemsTable.wishlistId, list.id), eq(wishlistItemsTable.productId, productId)));
