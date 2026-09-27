@@ -7,5 +7,14 @@
  */
 
 export interface CartItemUpdate {
+  /**
+   * @minimum 1
+   * @maximum 99
+   */
   quantity: number;
+  /**
+   * @minLength 8
+   * @maxLength 128
+   */
+  sessionId: string;
 }

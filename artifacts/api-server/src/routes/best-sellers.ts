@@ -1,54 +1,62 @@
 import { Router, type IRouter } from "express";
-import { db, productsTable, orderItemsTable, categoriesTable, reviewsTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { db, productsTable, orderItemsTable } from "@workspace/db";
+import { eq, desc, inArray, sql } from "drizzle-orm";
+import { enrichProducts } from "../lib/enrich";
 
 const router: IRouter = Router();
 
-async function enrichProduct(product: typeof productsTable.$inferSelect) {
-  const [cat] = await db.select({ nameFa: categoriesTable.nameFa }).from(categoriesTable).where(eq(categoriesTable.id, product.categoryId));
-  const reviewStats = await db.select({ avgRating: sql<number>`avg(${reviewsTable.rating})`, count: sql<number>`count(*)` }).from(reviewsTable).where(eq(reviewsTable.productId, product.id));
-  return {
-    ...product,
-    price: Number(product.price),
-    salePrice: product.salePrice ? Number(product.salePrice) : null,
-    weight: product.weight ? Number(product.weight) : null,
-    images: (product.images as string[]) || [],
-    tags: (product.tags as string[]) || [],
-    categoryName: cat?.nameFa ?? null,
-    avgRating: reviewStats[0]?.avgRating ? Number(reviewStats[0].avgRating) : null,
-    reviewCount: Number(reviewStats[0]?.count ?? 0),
-    flashSaleEndsAt: product.flashSaleEndsAt ? product.flashSaleEndsAt.toISOString() : null,
-    createdAt: product.createdAt.toISOString(),
-  };
-}
+const LIMIT = 8;
 
-router.get("/products/best-sellers", async (_req, res) => {
+/**
+ * Real best sellers, ranked by units actually sold. Falls back to the manual
+ * `isBestSeller` flag and then to featured products for a shop with no order
+ * history yet.
+ */
+router.get("/products/best-sellers", async (_req, res): Promise<void> => {
   const soldRows = await db
-    .select({ productId: orderItemsTable.productId, totalSold: sql<number>`sum(${orderItemsTable.quantity})` })
+    .select({
+      productId: orderItemsTable.productId,
+      totalSold: sql<string>`sum(${orderItemsTable.quantity})`,
+    })
     .from(orderItemsTable)
     .groupBy(orderItemsTable.productId)
     .orderBy(desc(sql`sum(${orderItemsTable.quantity})`))
-    .limit(20);
+    .limit(LIMIT);
 
   if (soldRows.length > 0) {
-    const ids = soldRows.map(r => r.productId);
-    const products = await db.select().from(productsTable).where(sql`${productsTable.id} = ANY(${ids})`);
-    const sorted = ids.map(id => products.find(p => p.id === id)).filter(Boolean) as typeof products;
-    const enriched = await Promise.all(sorted.slice(0, 8).map(enrichProduct));
-    res.json(enriched);
-    return;
+    const ids = soldRows.map((r) => r.productId);
+    const products = await db
+      .select()
+      .from(productsTable)
+      .where(inArray(productsTable.id, ids));
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const ordered = ids.flatMap((id) => {
+      const product = byId.get(id);
+      return product ? [product] : [];
+    });
+    if (ordered.length > 0) {
+      res.json(await enrichProducts(ordered));
+      return;
+    }
   }
 
-  const flagged = await db.select().from(productsTable).where(eq(productsTable.isBestSeller, true)).limit(8);
+  const flagged = await db
+    .select()
+    .from(productsTable)
+    .where(eq(productsTable.isBestSeller, true))
+    .limit(LIMIT);
   if (flagged.length > 0) {
-    const enriched = await Promise.all(flagged.map(enrichProduct));
-    res.json(enriched);
+    res.json(await enrichProducts(flagged));
     return;
   }
 
-  const featured = await db.select().from(productsTable).where(eq(productsTable.isFeatured, true)).orderBy(desc(productsTable.createdAt)).limit(8);
-  const enriched = await Promise.all(featured.map(enrichProduct));
-  res.json(enriched);
+  const featured = await db
+    .select()
+    .from(productsTable)
+    .where(eq(productsTable.isFeatured, true))
+    .orderBy(desc(productsTable.createdAt))
+    .limit(LIMIT);
+  res.json(await enrichProducts(featured));
 });
 
 export default router;

@@ -5,10 +5,18 @@ import { requireAuth, requireAdmin } from "../middleware/auth";
 
 const router: IRouter = Router();
 
+/** Parses an ISO date from the query string, ignoring anything unparseable. */
+function parseDate(value: string | undefined): Date | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 function getDateRange(period: string, from?: string, to?: string): { start: Date; end: Date } {
   const now = new Date();
-  const end = to ? new Date(to) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-  if (from) return { start: new Date(from), end };
+  const end = parseDate(to) ?? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  const start = parseDate(from);
+  if (start) return { start, end };
 
   switch (period) {
     case "today":

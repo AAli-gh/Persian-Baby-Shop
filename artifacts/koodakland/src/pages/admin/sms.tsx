@@ -15,8 +15,10 @@ const TYPE_LABELS: Record<string, { label: string; color: string }> = {
 const STATUS_CONFIG = {
   delivered: { label: "تحویل داده شد", icon: CheckCircle, color: "text-green-600 bg-green-50" },
   failed:    { label: "ناموفق", icon: XCircle, color: "text-red-600 bg-red-50" },
-  pending:   { label: "در انتظار", icon: Clock, color: "text-orange-600 bg-orange-50" },
-};
+  queued:    { label: "در انتظار ارسال", icon: Clock, color: "text-orange-600 bg-orange-50" },
+} as const;
+
+const UNKNOWN_STATUS = { label: "نامشخص", icon: Clock, color: "text-muted-foreground bg-muted" };
 
 function fetchStats() { return fetch("/api/sms/stats").then(r => r.json()); }
 function fetchTemplates() { return fetch("/api/sms/templates").then(r => r.json()); }
@@ -46,9 +48,14 @@ export default function AdminSMS() {
   const { data: logs } = useQuery({ queryKey: ["sms-logs", logFilter], queryFn: () => fetchLogs(logFilter) });
 
   const sendSMS = useMutation({
-    mutationFn: (body: object) => fetch("/api/sms/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json()),
+    mutationFn: async (body: object) => {
+      const response = await fetch("/api/sms/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "خطا در ارسال");
+      return data as { sent: number };
+    },
     onSuccess: (d) => { toast({ title: `${d.sent} پیام ارسال شد` }); qc.invalidateQueries({ queryKey: ["sms-logs"] }); qc.invalidateQueries({ queryKey: ["sms-stats"] }); setSendForm({ phones: "", templateId: "", variables: "" }); },
-    onError: () => toast({ title: "خطا در ارسال", variant: "destructive" }),
+    onError: (error: Error) => toast({ title: "خطا در ارسال", description: error.message, variant: "destructive" }),
   });
   const createTemplate = useMutation({
     mutationFn: (body: object) => fetch("/api/sms/templates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json()),
@@ -98,7 +105,7 @@ export default function AdminSMS() {
               { label: "کل ارسال‌شده", value: stats.totalSent, icon: Send, color: "bg-blue-100 text-blue-600" },
               { label: "تحویل موفق", value: stats.delivered, icon: CheckCircle, color: "bg-green-100 text-green-600" },
               { label: "نرخ تحویل", value: `${stats.deliveryRate}٪`, icon: BarChart2, color: "bg-purple-100 text-purple-600" },
-              { label: "اعتبار باقی‌مانده", value: `${stats.credit?.toLocaleString("fa-IR")} پیامک`, icon: Zap, color: "bg-orange-100 text-orange-600" },
+              { label: "اعتبار باقی‌مانده", value: stats.credit == null ? "—" : `${stats.credit.toLocaleString("fa-IR")} پیامک`, icon: Zap, color: "bg-orange-100 text-orange-600" },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-card rounded-2xl p-5 border border-border/50 flex flex-col gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
@@ -322,8 +329,8 @@ export default function AdminSMS() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(logs?.logs || []).map((l: { id: number; phone: string; type: string; text: string; status: "delivered" | "failed" | "pending"; sentAt: string }) => {
-                    const sc = STATUS_CONFIG[l.status];
+                  {(logs?.logs || []).map((l: { id: number; phone: string; type: string; text: string; status: keyof typeof STATUS_CONFIG; sentAt: string }) => {
+                    const sc = STATUS_CONFIG[l.status] ?? UNKNOWN_STATUS;
                     const Icon = sc.icon;
                     return (
                       <tr key={l.id} className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors">

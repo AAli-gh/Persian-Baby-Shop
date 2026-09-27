@@ -1,10 +1,13 @@
 import { Router, type IRouter } from "express";
-import { desc, gte, sql, eq, lte } from "drizzle-orm";
+import { desc, gte, sql, eq, lte, inArray } from "drizzle-orm";
 import { db, ordersTable, orderItemsTable, productsTable, usersTable } from "@workspace/db";
 import { requireAuth, requireAdmin } from "../middleware/auth";
+import { enrichProducts } from "../lib/enrich";
 
 const router: IRouter = Router();
-router.use(requireAuth, requireAdmin);
+// Scoped to this router's own prefix: an unscoped `router.use` guard would
+// also run for every router mounted after this one.
+router.use("/admin", requireAuth, requireAdmin);
 
 router.get("/admin/stats", async (_req, res): Promise<void> => {
   const now = new Date();
@@ -44,35 +47,50 @@ router.get("/admin/stats", async (_req, res): Promise<void> => {
 
 router.get("/admin/recent-orders", async (_req, res): Promise<void> => {
   const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt)).limit(10);
-  const enriched = await Promise.all(orders.map(async (o) => {
-    const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, o.id));
-    return { ...o, subtotal: Number(o.subtotal), shippingCost: Number(o.shippingCost), discount: Number(o.discount), total: Number(o.total), createdAt: o.createdAt.toISOString(), updatedAt: o.updatedAt.toISOString(), items: items.map((i) => ({ ...i, price: Number(i.price) })) };
-  }));
-  res.json(enriched);
+  const items = orders.length > 0
+    ? await db.select().from(orderItemsTable).where(inArray(orderItemsTable.orderId, orders.map((o) => o.id)))
+    : [];
+
+  res.json(orders.map((o) => ({
+    ...o,
+    subtotal: Number(o.subtotal), shippingCost: Number(o.shippingCost),
+    discount: Number(o.discount), total: Number(o.total),
+    createdAt: o.createdAt.toISOString(), updatedAt: o.updatedAt.toISOString(),
+    items: items.filter((i) => i.orderId === o.id).map((i) => ({ ...i, price: Number(i.price) })),
+  })));
 });
 
 router.get("/admin/low-stock", async (_req, res): Promise<void> => {
   const products = await db.select().from(productsTable).where(lte(productsTable.stock, 5)).limit(20);
-  res.json(products.map((p) => ({
-    ...p, price: Number(p.price), salePrice: p.salePrice ? Number(p.salePrice) : null, weight: p.weight ? Number(p.weight) : null,
-    images: (p.images as string[]) || [], tags: (p.tags as string[]) || [],
-    categoryName: null, avgRating: null, reviewCount: 0,
-    flashSaleEndsAt: p.flashSaleEndsAt ? p.flashSaleEndsAt.toISOString() : null,
-    createdAt: p.createdAt.toISOString(),
-  })));
+  res.json(await enrichProducts(products));
 });
 
 router.get("/admin/sales-chart", async (_req, res): Promise<void> => {
   const days = 30;
-  const result = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-    const [row] = await db.select({ revenue: sql<number>`coalesce(sum(total::numeric), 0)`, orders: sql<number>`count(*)` }).from(ordersTable).where(sql`${ordersTable.createdAt} >= ${start} AND ${ordersTable.createdAt} < ${end}`);
-    result.push({ date: start.toISOString().split("T")[0], revenue: Number(row.revenue), orders: Number(row.orders) });
-  }
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+
+  // One grouped query for the whole window instead of one per day.
+  const rows = await db
+    .select({
+      day: sql<string>`to_char(date_trunc('day', ${ordersTable.createdAt}), 'YYYY-MM-DD')`,
+      revenue: sql<string>`coalesce(sum(${ordersTable.total}), 0)`,
+      orders: sql<string>`count(*)`,
+    })
+    .from(ordersTable)
+    .where(gte(ordersTable.createdAt, start))
+    .groupBy(sql`date_trunc('day', ${ordersTable.createdAt})`);
+
+  const byDay = new Map(rows.map((row) => [row.day, row]));
+  const result = Array.from({ length: days }, (_, offset) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + offset);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const row = byDay.get(key);
+    return { date: key, revenue: Number(row?.revenue ?? 0), orders: Number(row?.orders ?? 0) };
+  });
+
   res.json(result);
 });
 

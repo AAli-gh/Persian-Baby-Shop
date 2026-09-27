@@ -458,8 +458,14 @@ export const SearchProductsResponse = zod.object({
 /**
  * @summary Get current cart
  */
+export const getCartQuerySessionIdMin = 8;
+export const getCartQuerySessionIdMax = 128;
+
 export const GetCartQueryParams = zod.object({
-  sessionId: zod.coerce.string().optional(),
+  sessionId: zod.coerce
+    .string()
+    .min(getCartQuerySessionIdMin)
+    .max(getCartQuerySessionIdMax),
 });
 
 export const GetCartResponse = zod.object({
@@ -505,10 +511,19 @@ export const GetCartResponse = zod.object({
 /**
  * @summary Add item to cart
  */
+
+export const addToCartBodyQuantityMax = 99;
+
+export const addToCartBodySessionIdMin = 8;
+export const addToCartBodySessionIdMax = 128;
+
 export const AddToCartBody = zod.object({
-  productId: zod.number(),
-  quantity: zod.number(),
-  sessionId: zod.string(),
+  productId: zod.number().min(1),
+  quantity: zod.number().min(1).max(addToCartBodyQuantityMax),
+  sessionId: zod
+    .string()
+    .min(addToCartBodySessionIdMin)
+    .max(addToCartBodySessionIdMax),
 });
 
 export const AddToCartResponse = zod.object({
@@ -558,8 +573,17 @@ export const UpdateCartItemParams = zod.object({
   itemId: zod.coerce.number(),
 });
 
+export const updateCartItemBodyQuantityMax = 99;
+
+export const updateCartItemBodySessionIdMin = 8;
+export const updateCartItemBodySessionIdMax = 128;
+
 export const UpdateCartItemBody = zod.object({
-  quantity: zod.number(),
+  quantity: zod.number().min(1).max(updateCartItemBodyQuantityMax),
+  sessionId: zod
+    .string()
+    .min(updateCartItemBodySessionIdMin)
+    .max(updateCartItemBodySessionIdMax),
 });
 
 export const UpdateCartItemResponse = zod.object({
@@ -607,6 +631,16 @@ export const UpdateCartItemResponse = zod.object({
  */
 export const RemoveCartItemParams = zod.object({
   itemId: zod.coerce.number(),
+});
+
+export const removeCartItemBodySessionIdMin = 8;
+export const removeCartItemBodySessionIdMax = 128;
+
+export const RemoveCartItemBody = zod.object({
+  sessionId: zod
+    .string()
+    .min(removeCartItemBodySessionIdMin)
+    .max(removeCartItemBodySessionIdMax),
 });
 
 export const RemoveCartItemResponse = zod.object({
@@ -754,10 +788,17 @@ export const ListOrdersResponse = zod.object({
 /**
  * @summary Place an order (checkout)
  */
+export const createOrderBodySessionIdMin = 8;
+export const createOrderBodySessionIdMax = 128;
+
+export const createOrderBodyAddressSnapshotMax = 2000;
+
 export const CreateOrderBody = zod.object({
-  sessionId: zod.string(),
-  userId: zod.number().nullish(),
-  addressSnapshot: zod.string(),
+  sessionId: zod
+    .string()
+    .min(createOrderBodySessionIdMin)
+    .max(createOrderBodySessionIdMax),
+  addressSnapshot: zod.string().min(1).max(createOrderBodyAddressSnapshotMax),
   shippingMethod: zod.string(),
   discountCode: zod.string().nullish(),
   notes: zod.string().nullish(),
@@ -867,12 +908,15 @@ export const ListReviewsResponse = zod.array(ListReviewsResponseItem);
 /**
  * @summary Submit a review
  */
+
+export const createReviewBodyRatingMax = 5;
+
+export const createReviewBodyCommentMax = 1000;
+
 export const CreateReviewBody = zod.object({
-  productId: zod.number(),
-  userId: zod.number().nullish(),
-  authorName: zod.string(),
-  rating: zod.number(),
-  comment: zod.string().optional(),
+  productId: zod.number().min(1),
+  rating: zod.number().min(1).max(createReviewBodyRatingMax),
+  comment: zod.string().max(createReviewBodyCommentMax).optional(),
 });
 
 /**

@@ -20,6 +20,7 @@ export * from "./blogPostUpdate";
 export * from "./cart";
 export * from "./cartItem";
 export * from "./cartItemInput";
+export * from "./cartItemRemove";
 export * from "./cartItemUpdate";
 export * from "./category";
 export * from "./categoryInput";

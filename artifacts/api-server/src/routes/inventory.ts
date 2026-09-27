@@ -2,14 +2,19 @@ import { Router, type IRouter } from "express";
 import { db, productsTable, categoriesTable, stockNotificationsTable } from "@workspace/db";
 import { eq, lte, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
+import { BulkRestockInput, UpdateStockInput } from "../lib/validation";
+import { requireId } from "../lib/http";
 
 const router: IRouter = Router();
-router.use(requireAuth, requireAdmin);
+// Scoped to this router's own prefix: an unscoped `router.use` guard would
+// also run for every router mounted after this one.
+router.use("/inventory", requireAuth, requireAdmin);
 
 router.get("/inventory", async (req, res) => {
   const search = String(req.query["search"] ?? "");
   const lowOnly = req.query["lowStock"] === "true";
-  const threshold = parseInt(String(req.query["threshold"] ?? "10"), 10);
+  const parsedThreshold = Number.parseInt(String(req.query["threshold"] ?? "10"), 10);
+  const threshold = Number.isNaN(parsedThreshold) ? 10 : Math.min(100_000, Math.max(0, parsedThreshold));
 
   const products = await db.select().from(productsTable).orderBy(productsTable.stock);
   const categories = await db.select({ id: categoriesTable.id, nameFa: categoriesTable.nameFa }).from(categoriesTable);
@@ -37,39 +42,57 @@ router.get("/inventory", async (req, res) => {
   res.json({ items, summary });
 });
 
+/**
+ * Sets a product's stock and, when it comes back from zero, marks the waiting
+ * back-in-stock subscribers as notified.
+ */
+async function restock(id: number, stock: number) {
+  return db.transaction(async (tx) => {
+    const [before] = await tx
+      .select({ stock: productsTable.stock })
+      .from(productsTable)
+      .where(eq(productsTable.id, id));
+    if (!before) return null;
+
+    const [updated] = await tx
+      .update(productsTable)
+      .set({ stock, updatedAt: new Date() })
+      .where(eq(productsTable.id, id))
+      .returning();
+    if (!updated) return null;
+
+    if (before.stock === 0 && stock > 0) {
+      await tx
+        .update(stockNotificationsTable)
+        .set({ isNotified: true, notifiedAt: new Date() })
+        .where(eq(stockNotificationsTable.productId, id));
+    }
+
+    return updated;
+  });
+}
+
 router.patch("/inventory/:id/stock", async (req, res): Promise<void> => {
-  const id = parseInt(req.params["id"] ?? "0", 10);
-  const { stock } = req.body as { stock: number; note?: string };
-  if (typeof stock !== "number" || stock < 0) { res.status(400).json({ error: "Invalid stock value" }); return; }
+  const id = requireId(req, res);
+  if (id === null) return;
+  const parsed = UpdateStockInput.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const { stock } = parsed.data;
 
-  const [before] = await db.select({ stock: productsTable.stock }).from(productsTable).where(eq(productsTable.id, id));
-  const [updated] = await db.update(productsTable).set({ stock }).where(eq(productsTable.id, id)).returning();
-  if (!updated) { res.status(404).json({ error: "Product not found" }); return; }
+  const restocked = await restock(id, stock);
+  if (!restocked) { res.status(404).json({ error: "محصول یافت نشد" }); return; }
 
-  if (before && before.stock === 0 && stock > 0) {
-    await db.update(stockNotificationsTable)
-      .set({ isNotified: true, notifiedAt: new Date() })
-      .where(eq(stockNotificationsTable.productId, id));
-  }
-
-  res.json(updated);
+  res.json(restocked);
 });
 
-router.post("/inventory/bulk-restock", async (req, res) => {
-  const { items } = req.body as { items: Array<{ id: number; stock: number }> };
+router.post("/inventory/bulk-restock", async (req, res): Promise<void> => {
+  const parsed = BulkRestockInput.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
   const results = await Promise.all(
-    items.map(async ({ id, stock }) => {
-      const [before] = await db.select({ stock: productsTable.stock }).from(productsTable).where(eq(productsTable.id, id));
-      const result = await db.update(productsTable).set({ stock }).where(eq(productsTable.id, id)).returning();
-      if (before && before.stock === 0 && stock > 0) {
-        await db.update(stockNotificationsTable)
-          .set({ isNotified: true, notifiedAt: new Date() })
-          .where(eq(stockNotificationsTable.productId, id));
-      }
-      return result;
-    })
+    parsed.data.items.map(({ id, stock }) => restock(id, stock)),
   );
-  res.json({ updated: results.flat().length });
+  res.json({ updated: results.filter(Boolean).length });
 });
 
 export default router;

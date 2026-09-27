@@ -48,7 +48,7 @@ export default function Checkout() {
     }
     const addressSnapshot = JSON.stringify({ province: form.province, city: form.city, street: form.street, postalCode: form.postalCode });
     createOrder.mutate({
-      data: { sessionId, userId: user?.id ?? null, addressSnapshot, shippingMethod: activeShipping?.name || "standard", discountCode: discountCode || null, notes: notes || null, customerName: form.name, customerPhone: form.phone },
+      data: { sessionId, addressSnapshot, shippingMethod: activeShipping?.name || "standard", discountCode: discountCode || null, notes: notes || null, customerName: form.name, customerPhone: form.phone },
     }, {
       onSuccess: (order) => { navigate(`/order-success?order=${order.orderNumber}`); },
       onError: () => toast({ title: "خطا", description: "مشکلی در ثبت سفارش پیش آمد", variant: "destructive" }),

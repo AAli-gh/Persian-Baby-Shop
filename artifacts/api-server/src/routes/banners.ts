@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, bannersTable } from "@workspace/db";
 import { CreateBannerBody, UpdateBannerBody } from "@workspace/api-zod";
 import { requireAuth, requireAdmin } from "../middleware/auth";
+import { requireId } from "../lib/http";
 
 const router: IRouter = Router();
 
@@ -19,8 +20,8 @@ router.post("/banners", requireAuth, requireAdmin, async (req, res): Promise<voi
 });
 
 router.patch("/banners/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
+  const id = requireId(req, res);
+  if (id === null) return;
   const parsed = UpdateBannerBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [banner] = await db.update(bannersTable).set(parsed.data).where(eq(bannersTable.id, id)).returning();
@@ -29,8 +30,8 @@ router.patch("/banners/:id", requireAuth, requireAdmin, async (req, res): Promis
 });
 
 router.delete("/banners/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
+  const id = requireId(req, res);
+  if (id === null) return;
   await db.delete(bannersTable).where(eq(bannersTable.id, id));
   res.sendStatus(204);
 });

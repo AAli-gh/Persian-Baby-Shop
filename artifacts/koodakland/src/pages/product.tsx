@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useCartSession } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { ShoppingBag, Star, Minus, Plus, Package, Shield, Truck } from "lucide-react";
 import { StockNotifyForm } from "@/components/product/StockNotifyForm";
@@ -26,11 +27,11 @@ export default function ProductPage() {
 
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
-  const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
 
   const { sessionId } = useCartSession();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const { data: product, isLoading } = useQuery({
@@ -58,13 +59,19 @@ export default function ProductPage() {
   };
 
   const handleReview = () => {
-    if (!product || !reviewName) return;
-    createReview.mutate({ data: { productId: product.id, authorName: reviewName, rating: reviewRating, comment: reviewComment } }, {
+    if (!product) return;
+    // The author is taken from the session server-side, so a review needs a login.
+    if (!user) {
+      toast({ title: "برای ثبت نظر وارد حساب خود شوید", variant: "destructive" });
+      return;
+    }
+    createReview.mutate({ data: { productId: product.id, rating: reviewRating, comment: reviewComment || undefined } }, {
       onSuccess: () => {
         toast({ title: "نظر ثبت شد", description: "نظر شما با موفقیت ثبت شد." });
-        setReviewName(""); setReviewComment(""); setReviewRating(5);
+        setReviewComment(""); setReviewRating(5);
         refetchReviews();
       },
+      onError: () => toast({ title: "ثبت نظر انجام نشد", description: "اگر قبلاً برای این محصول نظر داده‌اید، امکان ثبت مجدد نیست.", variant: "destructive" }),
     });
   };
 
@@ -219,7 +226,9 @@ export default function ProductPage() {
           <div className="bg-card rounded-2xl p-6 border border-border/50">
             <h3 className="font-bold mb-4">ثبت نظر</h3>
             <div className="flex flex-col gap-4">
-              <input value={reviewName} onChange={(e) => setReviewName(e.target.value)} placeholder="نام شما" className="h-10 rounded-xl bg-muted border-none px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-full" />
+              {!user && (
+                <p className="text-sm text-muted-foreground">برای ثبت نظر ابتدا وارد حساب کاربری خود شوید.</p>
+              )}
               <div className="flex gap-2">
                 {[1,2,3,4,5].map((r) => (
                   <button key={r} onClick={() => setReviewRating(r)}>
@@ -228,7 +237,7 @@ export default function ProductPage() {
                 ))}
               </div>
               <textarea value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} placeholder="نظر شما..." rows={3} className="rounded-xl bg-muted border-none px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none w-full" />
-              <Button onClick={handleReview} className="rounded-full w-fit font-bold" disabled={createReview.isPending}>
+              <Button onClick={handleReview} className="rounded-full w-fit font-bold" disabled={createReview.isPending || !user}>
                 {createReview.isPending ? "در حال ثبت..." : "ثبت نظر"}
               </Button>
             </div>

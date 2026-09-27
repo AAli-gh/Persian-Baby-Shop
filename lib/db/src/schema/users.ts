@@ -10,8 +10,6 @@ export const usersTable = pgTable("users", {
   email: text("email"),
   avatar: text("avatar"),
   role: text("role").notNull().default("customer"),
-  otpCode: text("otp_code"),
-  otpExpiresAt: timestamp("otp_expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
